@@ -42,11 +42,11 @@ export const sendList= async(req,res)=>{
         })
     }
 
-    const {to} = req.body;
+    const {_to} = req.body;
     const {id} = req.params;
 
     try {
-        await List.findByIdAndUpdate(id,{to:id})
+        await List.findByIdAndUpdate(id,{to:_to})
 
         return res.status(200).json({
             success: true,
