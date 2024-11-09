@@ -1,22 +1,15 @@
-import { Router } from "express";
-import { registerUser } from "../controllers/user.controller.js";
-import { upload } from "../middlewares/multer.middlewere.js";
+import Router from "express";
+import {
+  loginUser,
+  logoutUser,
+  registerUser,
+} from "../controllers/user.controller.js";
+import { verifyToken } from "../middleware/auth.middleware.js";
 
-const router = Router()  //create a new router object using the Router() function from the express module.
+const router = Router();
 
-//register route for user registration
-router.route("/register").post(
-    upload.fields([  //using multer middleware to upload files and store them in the public/temp directory
-        {
-            name: "avatar",
-            maxCount: 1
-        },
-        {
-            name: "coverImage",
-            maxCount: 1
-        }
-    ]),
-    registerUser
-)  
+router.route("/register").post(registerUser);
+router.route("/login").post(loginUser);
+router.route("/logout").post(verifyToken, logoutUser);
 
-export default router
+export default router;
