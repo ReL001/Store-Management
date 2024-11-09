@@ -1,15 +1,15 @@
 import { Order } from "../models/order.model.js";
+import { ApiResponse } from "../utils/ApiResponse.js";
+import { ApiError } from "../utils/ApiError.js";
 
 export const createOrder = async (req, res) => {
   try {
-    // Extract order details from the request body
+    // Get order details from the request body
     const { items, vendor } = req.body;
 
     // Validate that items are provided
     if (!items || !Array.isArray(items) || items.length === 0) {
-      return res
-        .status(400)
-        .json({ error: "Order must include at least one item" });
+      throw new ApiError(400, "Order must include at least one item");
     }
 
     // Validate that each item has required fields
@@ -21,9 +21,10 @@ export const createOrder = async (req, res) => {
         !item.price ||
         item.price < 0
       ) {
-        return res.status(400).json({
-          error: "Each item must have a name, valid quantity, and valid price",
-        });
+        throw new ApiError(
+          400,
+          "Each item must have a name, valid quantity, and valid price"
+        );
       }
     }
 
@@ -31,19 +32,17 @@ export const createOrder = async (req, res) => {
     const newOrder = new Order({
       items,
       vendor,
-      createdBy: req.user._id, // Assuming `req.user` is set after authentication middleware
+      createdBy: req.user._id,
     });
 
     // Save the order to the database
     const savedOrder = await newOrder.save();
 
-    // Return the saved order as a response
-    res.status(201).json({
-      message: "Order created successfully",
-      order: savedOrder,
-    });
+    res
+      .status(201)
+      .json(new ApiResponse(201, savedOrder, "Order created successfully"));
   } catch (error) {
     console.error("Error creating order:", error);
-    res.status(500).json({ error: "Internal server error" });
+    throw new ApiError(500, "Internal server error");
   }
 };
