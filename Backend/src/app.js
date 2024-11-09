@@ -1,6 +1,17 @@
-import express from 'express';
+import express, { urlencoded } from "express";
+import cors from "cors";
+import cookieParser from "cookie-parser";
 
-const app = express()   
+const app = express();
 
+app.use(cors());
+app.use(express.json({ limit: "16kb" }));
+app.use(urlencoded({ extended: true, limit: "16kb" }));
+app.use(express.static("public"));
+app.use(cookieParser());
 
-export { app } //export the app object to make it available to other modules.
+app.get("/api/users", (req, res) => {
+  res.send("hello users");
+});
+
+export { app }; //export the app object to make it available to other modules.
