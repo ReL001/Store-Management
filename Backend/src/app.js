@@ -14,8 +14,10 @@ app.use(cookieParser());
 //   res.send("hello users");
 // });
 
-import router from "./routes/user.routes.js";
+import userRouter from "./routes/user.routes.js";
+import orderRouter from "./routes/order.routes.js";
 
-app.use("/api/users", router);
+app.use("/api/users", userRouter);
+app.use("/api/orders", orderRouter);
 
 export { app }; //export the app object to make it available to other modules.
