@@ -1,6 +1,6 @@
 import mongoose, { Schema } from "mongoose";
 import bcrypt from "bcrypt";
-import jwt from "json-web-token";
+import jwt from "jsonwebtoken";
 
 const userSchema = new Schema(
   {
@@ -42,43 +42,35 @@ const userSchema = new Schema(
 );
 
 userSchema.pre("save", async function (next) {
-  //pre-save middleware function to hash the password before saving the user to the database
-  if (this.isModified("password")) {
-    this.password = await bcrypt.hash(this.password, 12);
-  }
+  if (!this.isModified("password")) return next();
+  this.password = await bcrypt.hash(this.password, 10);
   next();
 });
 
-userSchema.methods.isPasswordCorrect = function (password) {
-  //method to compare the password entered by the user with the hashed password stored in the database
-  return bcrypt.compare(password, this.password);
+userSchema.methods.comparePassword = async function (password) {
+  // console.log(`From comparePassword: ${password} && ${this.password}`);
+  return await bcrypt.compare(password, this.password);
 };
-
-userSchema.methods.generateAccessTockens = function () {
-  //method to generate an access token for the user
-  jwt.sign(
-    //jwt.sign() method is used to generate a JWT token with the user's information
+userSchema.methods.generateAccessToken = function () {
+  return jwt.sign(
     {
-      _id: this._id, //payload of the token
+      _id: this._id,
       email: this.email,
-      username: this.username,
-      fullname: this.fullname,
     },
     process.env.ACCESS_TOKEN_SECRET,
     {
-      expiresIn: process.env.ACCESS_TOCKEN_EXPIRY,
+      expiresIn: process.env.ACCESS_TOKEN_EXPIRY,
     }
   );
 };
-userSchema.methods.generateRefreshTockens = function () {
-  //method to generate a refresh token for the user
-  jwt.sign(
+userSchema.methods.generateRefreshToken = function () {
+  return jwt.sign(
     {
       _id: this._id,
     },
     process.env.REFRESH_TOKEN_SECRET,
     {
-      expiresIn: process.env.REFRESH_TOCKEN_EXPIRY,
+      expiresIn: process.env.REFRESH_TOKEN_EXPIRY,
     }
   );
 };
