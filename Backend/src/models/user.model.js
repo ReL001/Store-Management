@@ -35,6 +35,12 @@ const userSchema = new Schema(
     refreshToken: {
       type: String,
     },
+    role: {
+      type: String,
+      required: true,
+      enum: ["hod", "manager"],
+      default: "manager",
+    },
   },
   {
     timestamps: true,
@@ -56,6 +62,7 @@ userSchema.methods.generateAccessToken = function () {
     {
       _id: this._id,
       email: this.email,
+      role: this.role,
     },
     process.env.ACCESS_TOKEN_SECRET,
     {
@@ -67,6 +74,8 @@ userSchema.methods.generateRefreshToken = function () {
   return jwt.sign(
     {
       _id: this._id,
+      email: this.email,
+      role: this.role,
     },
     process.env.REFRESH_TOKEN_SECRET,
     {
