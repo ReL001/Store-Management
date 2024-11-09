@@ -10,8 +10,12 @@ app.use(urlencoded({ extended: true, limit: "16kb" }));
 app.use(express.static("public"));
 app.use(cookieParser());
 
-app.get("/api/users", (req, res) => {
-  res.send("hello users");
-});
+// app.get("/api/users", (req, res) => {
+//   res.send("hello users");
+// });
+
+import router from "./routes/user.routes.js";
+
+app.use("/api/users", router);
 
 export { app }; //export the app object to make it available to other modules.
