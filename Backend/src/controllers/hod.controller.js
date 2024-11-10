@@ -1,6 +1,7 @@
 import asyncHandler from "express-async-handler";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
+import { Order } from "../models/order.model.js";
 
 export const ApproveOrder = asyncHandler(async (req, res) => {
   const user = req.user;
@@ -13,20 +14,23 @@ export const ApproveOrder = asyncHandler(async (req, res) => {
 
   const currentOrder = await Order.findById(id);
 
-  const status = currentOrder.status;
-
-  const toApprove = req.body;
+  const { toApprove } = req.body;
 
   try {
     if (toApprove) {
       currentOrder.status = "approved";
-      await currentOrder.save();
-    } else {
-      currentOrder.status = "rejected";
+      currentOrder.approvedBy = user._id;
       await currentOrder.save();
       return res
         .status(200)
-        .json(new ApiResponse(200, "Status updated successfully"));
+        .json(new ApiResponse(200, "Order approved successfully"));
+    } else {
+      currentOrder.status = "rejected";
+      currentOrder.approvedBy = user._id;
+      await currentOrder.save();
+      return res
+        .status(200)
+        .json(new ApiResponse(200, "Order rejected successfully"));
     }
   } catch (error) {
     throw new Error(500, "Error updating status");

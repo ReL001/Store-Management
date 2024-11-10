@@ -19,7 +19,7 @@ const generateAccessAndRefreshTokens = async (userId) => {
 };
 
 export const registerUser = asyncHandler(async (req, res) => {
-  const { username, email, fullName, password } = req.body;
+  const { username, email, fullName, password, role } = req.body;
   // Check for empty fields
   if (
     [username, email, fullName, password].some((field) => field?.trim() === "")
@@ -47,6 +47,7 @@ export const registerUser = asyncHandler(async (req, res) => {
     email,
     fullName,
     password,
+    role,
   });
 
   const createdUser = await User.findById(user._id).select(

@@ -48,15 +48,49 @@ export const createOrder = async (req, res) => {
 };
 
 export const updateOrder = async (req, res) => {
+  console.log("upading");
   try {
-    const { orderId } = req.params;
-    const updateData = req.body;
+    const { id } = req.params;
+    console.log(id);
+
+    // Get order details from the request body
+    const { items, vendor } = req.body;
+
+    // Validate that items are provided
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      throw new ApiError(400, "Order must include at least one item");
+    }
+
+    // Validate that each item has required fields
+    for (let item of items) {
+      if (
+        !item.name ||
+        !item.quantity ||
+        item.quantity < 1 ||
+        !item.price ||
+        item.price < 0
+      ) {
+        throw new ApiError(
+          400,
+          "Each item must have a name, valid quantity, and valid price"
+        );
+      }
+    }
 
     // Find the order by ID and update it with new data
-    const updatedOrder = await Order.findByIdAndUpdate(orderId, updateData, {
-      new: true,
-      runValidators: true,
-    });
+    const updatedOrder = await Order.findByIdAndUpdate(
+      id,
+      {
+        items,
+        vendor,
+        updatedBy: req.user._id,
+        updatedAt: new Date(),
+      },
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
 
     if (!updatedOrder) {
       throw new ApiError(404, "Order not found");
@@ -73,10 +107,10 @@ export const updateOrder = async (req, res) => {
 
 export const deleteOrder = async (req, res) => {
   try {
-    const { orderId } = req.params;
+    const { id } = req.params;
 
     // Find the order by ID and delete it
-    const deletedOrder = await Order.findByIdAndDelete(orderId);
+    const deletedOrder = await Order.findByIdAndDelete(id);
 
     if (!deletedOrder) {
       throw new ApiError(404, "Order not found");
