@@ -35,7 +35,7 @@ const Login: React.FC = () => {
       role: '',
     },
     validationSchema: validationSchema,
-    onSubmit: (values) => {
+    onSubmit: (values: { email: string; password: string; role: string }) => {
       // TODO: Implement login logic
       console.log(values);
       // Navigate based on role
@@ -43,7 +43,7 @@ const Login: React.FC = () => {
         navigate('/store-manager/dashboard');
       } else {
         navigate('/hod/dashboard');
-      }
+      } // Role Logic need upgradatin
     },
   });
 

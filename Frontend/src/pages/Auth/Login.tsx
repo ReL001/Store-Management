@@ -7,6 +7,10 @@ import {
   Button,
   Container,
   Alert,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from '@mui/material';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
@@ -19,6 +23,7 @@ const MotionPaper = motion(Paper);
 interface LoginFormValues {
   email: string;
   password: string;
+  role: 'store_manager' | 'hod';
 }
 
 const validationSchema = Yup.object({
@@ -28,6 +33,9 @@ const validationSchema = Yup.object({
   password: Yup.string()
     .min(6, 'Password must be at least 6 characters')
     .required('Password is required'),
+  role: Yup.string()
+    .oneOf(['store_manager', 'hod'], 'Invalid role')
+    .required('Role is required'),
 });
 
 const Login: React.FC = () => {
@@ -35,15 +43,16 @@ const Login: React.FC = () => {
   const { login } = useAuth();
   const [error, setError] = React.useState<string | null>(null);
 
-  const formik = useFormik<LoginFormValues>({
+  const formik = useFormik({
     initialValues: {
       email: '',
       password: '',
+      role: 'store_manager' as const,
     },
     validationSchema,
-    onSubmit: async (values) => {
+    onSubmit: async (values: LoginFormValues) => {
       try {
-        await login(values.email, values.password);
+        await login(values.email, values.password, values.role);
         navigate('/dashboard');
       } catch (err) {
         setError('Invalid email or password');
@@ -106,6 +115,26 @@ const Login: React.FC = () => {
               margin="normal"
               autoComplete="current-password"
             />
+            <FormControl fullWidth margin="normal">
+              <InputLabel id="role-label">Role</InputLabel>
+              <Select
+                labelId="role-label"
+                id="role"
+                name="role"
+                value={formik.values.role}
+                onChange={formik.handleChange}
+                error={formik.touched.role && Boolean(formik.errors.role)}
+                label="Role"
+              >
+                <MenuItem value="store_manager">Store Manager</MenuItem>
+                <MenuItem value="hod">Head of Department (HOD)</MenuItem>
+              </Select>
+              {formik.touched.role && formik.errors.role && (
+                <Typography color="error" variant="caption">
+                  {formik.errors.role}
+                </Typography>
+              )}
+            </FormControl>
             <Button
               type="submit"
               fullWidth

@@ -23,9 +23,11 @@ import {
   People as PeopleIcon,
   Settings as SettingsIcon,
   ExitToApp as LogoutIcon,
+  CheckCircle as ApproveIcon,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useAuth } from '../../contexts/AuthContext';
 
 const drawerWidth = 240;
 
@@ -33,12 +35,17 @@ interface DashboardLayoutProps {
   children: React.ReactNode;
 }
 
-const menuItems = [
+const storeManagerMenuItems = [
   { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
   { text: 'Products', icon: <InventoryIcon />, path: '/products' },
   { text: 'Orders', icon: <ShoppingCartIcon />, path: '/orders' },
+  { text: 'Settings', icon: <SettingsIcon />, path: '/settings' },
+];
+
+const hodMenuItems = [
+  { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
   { text: 'Requests', icon: <AssignmentIcon />, path: '/requests' },
-  { text: 'Users', icon: <PeopleIcon />, path: '/users' },
+  { text: 'Approve Requests', icon: <ApproveIcon />, path: '/approve-requests' },
   { text: 'Settings', icon: <SettingsIcon />, path: '/settings' },
 ];
 
@@ -48,10 +55,18 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const navigate = useNavigate();
   const location = useLocation();
+  const { user, logout } = useAuth();
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
+  const menuItems = user?.role === 'store_manager' ? storeManagerMenuItems : hodMenuItems;
 
   const drawer = (
     <Box>
@@ -88,10 +103,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       <List>
         <ListItem
           button
-          onClick={() => {
-            // Handle logout
-            navigate('/login');
-          }}
+          onClick={handleLogout}
         >
           <ListItemIcon>
             <LogoutIcon />
@@ -124,6 +136,10 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
           <Typography variant="h6" noWrap component="div">
             {menuItems.find(item => item.path === location.pathname)?.text || 'Dashboard'}
           </Typography>
+          <Box sx={{ flexGrow: 1 }} />
+          <Typography variant="subtitle1" sx={{ mr: 2 }}>
+            {user?.name} ({user?.role === 'store_manager' ? 'Store Manager' : 'HOD'})
+          </Typography>
         </Toolbar>
       </AppBar>
       <Box
@@ -136,7 +152,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
             open={mobileOpen}
             onClose={handleDrawerToggle}
             ModalProps={{
-              keepMounted: true, // Better open performance on mobile.
+              keepMounted: true,
             }}
             sx={{
               display: { xs: 'block', sm: 'none' },

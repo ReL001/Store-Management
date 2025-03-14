@@ -11,7 +11,7 @@ interface User {
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string, role: 'store_manager' | 'hod') => Promise<void>;
   logout: () => void;
 }
 
@@ -38,16 +38,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string, role: 'store_manager' | 'hod') => {
     try {
       // TODO: Replace with actual API call
       // For now, using mock data
       const mockUser: User = {
         id: '1',
-        name: 'John Doe',
+        name: role === 'store_manager' ? 'Store Manager' : 'HOD',
         email: email,
-        role: 'store_manager',
-        department: 'Computer Science',
+        role: role,
+        department: role === 'hod' ? 'Computer Science' : undefined,
       };
 
       setUser(mockUser);

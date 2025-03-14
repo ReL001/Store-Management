@@ -7,6 +7,7 @@ import Login from './pages/Auth/Login';
 import Dashboard from './pages/StoreManager/Dashboard';
 import ProductManagement from './pages/StoreManager/ProductManagement';
 import RequestReview from './pages/HOD/RequestReview';
+import ApproveRequests from './pages/HOD/ApproveRequests';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 
 // Create a theme instance
@@ -21,9 +22,23 @@ const theme = createTheme({
   },
 });
 
-const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { isAuthenticated } = useAuth();
-  return isAuthenticated ? <>{children}</> : <Navigate to="/login" />;
+interface PrivateRouteProps {
+  children: React.ReactNode;
+  allowedRoles?: ('store_manager' | 'hod')[];
+}
+
+const PrivateRoute: React.FC<PrivateRouteProps> = ({ children, allowedRoles }) => {
+  const { isAuthenticated, user } = useAuth();
+  
+  if (!isAuthenticated) {
+    return <Navigate to="/login" />;
+  }
+
+  if (allowedRoles && user && !allowedRoles.includes(user.role)) {
+    return <Navigate to="/dashboard" />;
+  }
+
+  return <>{children}</>;
 };
 
 const App: React.FC = () => {
@@ -47,7 +62,7 @@ const App: React.FC = () => {
             <Route
               path="/products"
               element={
-                <PrivateRoute>
+                <PrivateRoute allowedRoles={['store_manager']}>
                   <DashboardLayout>
                     <ProductManagement />
                   </DashboardLayout>
@@ -57,9 +72,19 @@ const App: React.FC = () => {
             <Route
               path="/requests"
               element={
-                <PrivateRoute>
+                <PrivateRoute allowedRoles={['hod']}>
                   <DashboardLayout>
                     <RequestReview />
+                  </DashboardLayout>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/approve-requests"
+              element={
+                <PrivateRoute allowedRoles={['hod']}>
+                  <DashboardLayout>
+                    <ApproveRequests />
                   </DashboardLayout>
                 </PrivateRoute>
               }
