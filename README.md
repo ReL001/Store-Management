@@ -1,37 +1,40 @@
 # College Store Management System
 
-A web-based application for managing college store inventory and purchase requests. The system allows store managers to add products and HODs to review and approve/reject purchase requests.
+A full-stack application for managing college store inventory and requests.
 
 ## Features
 
-- User Authentication (Store Manager and HOD roles)
-- Product Management
-- Purchase Request Workflow
-- Email Notifications
-- Responsive Design
+- Role-based authentication (Store Manager and HOD)
+- Product management
+- Request management
+- Email notifications
+- Input validation
+- Secure API endpoints
 
 ## Tech Stack
 
-- Frontend:
-  - React with TypeScript
-  - Material-UI
-  - React Router
-  - Formik & Yup for form handling
-  - Axios for API calls
+### Frontend
+- React with TypeScript
+- Material-UI
+- Formik and Yup for form handling
+- React Router for navigation
+- Framer Motion for animations
 
-- Backend:
-  - Node.js with Express
-  - MongoDB
-  - JWT for authentication
-  - Nodemailer for email notifications
+### Backend
+- Node.js with Express
+- TypeScript
+- MongoDB with Mongoose
+- JWT for authentication
+- Nodemailer for email notifications
+- Express Validator for input validation
 
 ## Prerequisites
 
 - Node.js (v14 or higher)
-- npm or yarn
 - MongoDB
+- npm or yarn
 
-## Setup Instructions
+## Setup
 
 1. Clone the repository:
 ```bash
@@ -39,74 +42,69 @@ git clone <repository-url>
 cd college-store-management
 ```
 
-2. Install Frontend Dependencies:
+2. Install dependencies:
 ```bash
-cd frontend
+# Install backend dependencies
+cd backend
+npm install
+
+# Install frontend dependencies
+cd ../frontend
 npm install
 ```
 
-3. Install Backend Dependencies:
-```bash
-cd ../backend
-npm install
-```
+3. Configure environment variables:
+- Copy `.env.example` to `.env` in the backend directory
+- Update the variables with your values
 
-4. Create a `.env` file in the backend directory with the following variables:
-```
-MONGODB_URI=your_mongodb_connection_string
-JWT_SECRET=your_jwt_secret
-SMTP_HOST=your_smtp_host
-SMTP_PORT=your_smtp_port
-SMTP_USER=your_smtp_username
-SMTP_PASS=your_smtp_password
-```
-
-5. Start the Backend Server:
+4. Start the development servers:
 ```bash
+# Start backend server
 cd backend
 npm run dev
-```
 
-6. Start the Frontend Development Server:
-```bash
+# Start frontend server
 cd frontend
 npm start
 ```
 
-The application will be available at `http://localhost:3000`
+## API Endpoints
 
-## Project Structure
+### Authentication
+- POST /api/auth/register - Register a new user
+- POST /api/auth/login - Login user
 
-```
-college-store-management/
-├── frontend/
-│   ├── src/
-│   │   ├── components/
-│   │   ├── pages/
-│   │   ├── services/
-│   │   ├── utils/
-│   │   ├── types/
-│   │   └── context/
-│   └── package.json
-├── backend/
-│   ├── src/
-│   │   ├── controllers/
-│   │   ├── models/
-│   │   ├── routes/
-│   │   ├── middleware/
-│   │   └── utils/
-│   └── package.json
-└── README.md
-```
+### Products
+- GET /api/products - Get all products
+- POST /api/products - Create a new product
+- GET /api/products/:id - Get a single product
+- PUT /api/products/:id - Update a product
+- DELETE /api/products/:id - Delete a product
+- PATCH /api/products/:id/status - Update product status
+
+### Requests
+- GET /api/requests - Get all requests
+- POST /api/requests - Create a new request
+- GET /api/requests/:id - Get a single request
+- PUT /api/requests/:id - Update a request
+- DELETE /api/requests/:id - Delete a request
+- PATCH /api/requests/:id/status - Update request status
+
+### Users
+- GET /api/users - Get all users
+- GET /api/users/:id - Get a single user
+- PUT /api/users/:id - Update a user
+- DELETE /api/users/:id - Delete a user
+- GET /api/users/me - Get current user
 
 ## Contributing
 
 1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+2. Create your feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a new Pull Request
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details. 
+This project is licensed under the MIT License. 
