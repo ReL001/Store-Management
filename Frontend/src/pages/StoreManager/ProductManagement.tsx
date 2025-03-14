@@ -3,10 +3,9 @@ import {
   Box,
   Button,
   Dialog,
-  DialogActions,
-  DialogContent,
   DialogTitle,
-  TextField,
+  DialogContent,
+  IconButton,
   Typography,
   Paper,
   Table,
@@ -15,193 +14,252 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  IconButton,
+  Chip,
+  Card,
+  CardContent,
   Grid,
+  Divider,
 } from '@mui/material';
-import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
-import { useFormik } from 'formik';
-import * as Yup from 'yup';
-import { Product } from '../../types';
+import {
+  Add as AddIcon,
+  Edit as EditIcon,
+  Delete as DeleteIcon,
+  ShoppingCart as ShoppingCartIcon,
+  Inventory as InventoryIcon,
+  Assignment as AssignmentIcon,
+} from '@mui/icons-material';
+import { motion } from 'framer-motion';
+import ProductForm from './ProductForm';
 
-const validationSchema = Yup.object({
-  name: Yup.string().required('Product name is required'),
-  description: Yup.string().required('Description is required'),
-  quantity: Yup.number().required('Quantity is required').min(1, 'Quantity must be at least 1'),
-  unit: Yup.string().required('Unit is required'),
-  estimatedCost: Yup.number().required('Estimated cost is required').min(0, 'Cost must be non-negative'),
-});
+const MotionPaper = motion(Paper);
+const MotionCard = motion(Card);
+
+interface Vendor {
+  name: string;
+  address: string;
+  contact: string;
+  gstin: string;
+}
+
+interface Item {
+  id: string;
+  name: string;
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  total: number;
+}
+
+interface Product {
+  id: string;
+  gin: string;
+  date: string;
+  department: string;
+  billNo: string;
+  vendor: Vendor;
+  items: Item[];
+  status: 'pending' | 'approved' | 'rejected';
+}
+
+interface FormData {
+  gin: string;
+  date: string;
+  department: string;
+  billNo: string;
+  vendor: Vendor;
+  items: Item[];
+}
 
 const ProductManagement: React.FC = () => {
-  const [open, setOpen] = useState(false);
+  const [openDialog, setOpenDialog] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [dialogType, setDialogType] = useState<'product' | 'order'>('product');
 
-  const formik = useFormik({
-    initialValues: {
-      name: '',
-      description: '',
-      quantity: 1,
-      unit: '',
-      estimatedCost: 0,
-    },
-    validationSchema: validationSchema,
-    onSubmit: (values) => {
-      if (editingProduct) {
-        // Update existing product
-        setProducts(products.map(p => 
-          p.id === editingProduct.id ? { ...values, id: p.id } : p
-        ));
-      } else {
-        // Add new product
-        setProducts([...products, { ...values, id: Date.now().toString() }]);
-      }
-      handleClose();
-    },
-  });
+  const handleOpenDialog = (type: 'product' | 'order') => {
+    setDialogType(type);
+    setOpenDialog(true);
+  };
 
-  const handleOpen = (product?: Product) => {
-    if (product) {
-      setEditingProduct(product);
-      formik.setValues(product);
-    } else {
-      setEditingProduct(null);
-      formik.resetForm();
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+  };
+
+  const handleSubmit = (formData: FormData) => {
+    const newProduct: Product = {
+      id: String(products.length + 1),
+      ...formData,
+      status: 'pending',
+    };
+    setProducts([...products, newProduct]);
+    handleCloseDialog();
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return 'warning';
+      case 'approved':
+        return 'success';
+      case 'rejected':
+        return 'error';
+      default:
+        return 'default';
     }
-    setOpen(true);
-  };
-
-  const handleClose = () => {
-    setOpen(false);
-    setEditingProduct(null);
-    formik.resetForm();
-  };
-
-  const handleDelete = (id: string) => {
-    setProducts(products.filter(p => p.id !== id));
   };
 
   return (
-    <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-        <Typography variant="h4">Product Management</Typography>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => handleOpen()}
-        >
-          Add Product
-        </Button>
+    <Box sx={{ p: 3 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
+          Product Management
+        </Typography>
+        <Box sx={{ display: 'flex', gap: 2 }}>
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<ShoppingCartIcon />}
+            onClick={() => handleOpenDialog('order')}
+          >
+            Create New Order
+          </Button>
+          <Button
+            variant="outlined"
+            color="primary"
+            startIcon={<AddIcon />}
+            onClick={() => handleOpenDialog('product')}
+          >
+            Add New Product
+          </Button>
+        </Box>
       </Box>
 
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Name</TableCell>
-              <TableCell>Description</TableCell>
-              <TableCell>Quantity</TableCell>
-              <TableCell>Unit</TableCell>
-              <TableCell>Estimated Cost</TableCell>
-              <TableCell>Actions</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {products.map((product) => (
-              <TableRow key={product.id}>
-                <TableCell>{product.name}</TableCell>
-                <TableCell>{product.description}</TableCell>
-                <TableCell>{product.quantity}</TableCell>
-                <TableCell>{product.unit}</TableCell>
-                <TableCell>₹{product.estimatedCost}</TableCell>
-                <TableCell>
-                  <IconButton onClick={() => handleOpen(product)}>
-                    <EditIcon />
-                  </IconButton>
-                  <IconButton onClick={() => handleDelete(product.id)}>
-                    <DeleteIcon />
-                  </IconButton>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-
-      <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-        <DialogTitle>
-          {editingProduct ? 'Edit Product' : 'Add New Product'}
-        </DialogTitle>
-        <form onSubmit={formik.handleSubmit}>
-          <DialogContent>
-            <Grid container spacing={2}>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  name="name"
-                  label="Product Name"
-                  value={formik.values.name}
-                  onChange={formik.handleChange}
-                  error={formik.touched.name && Boolean(formik.errors.name)}
-                  helperText={formik.touched.name && formik.errors.name}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  name="description"
-                  label="Description"
-                  multiline
-                  rows={3}
-                  value={formik.values.description}
-                  onChange={formik.handleChange}
-                  error={formik.touched.description && Boolean(formik.errors.description)}
-                  helperText={formik.touched.description && formik.errors.description}
-                />
-              </Grid>
-              <Grid item xs={6}>
-                <TextField
-                  fullWidth
-                  name="quantity"
-                  label="Quantity"
-                  type="number"
-                  value={formik.values.quantity}
-                  onChange={formik.handleChange}
-                  error={formik.touched.quantity && Boolean(formik.errors.quantity)}
-                  helperText={formik.touched.quantity && formik.errors.quantity}
-                />
-              </Grid>
-              <Grid item xs={6}>
-                <TextField
-                  fullWidth
-                  name="unit"
-                  label="Unit"
-                  value={formik.values.unit}
-                  onChange={formik.handleChange}
-                  error={formik.touched.unit && Boolean(formik.errors.unit)}
-                  helperText={formik.touched.unit && formik.errors.unit}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  name="estimatedCost"
-                  label="Estimated Cost"
-                  type="number"
-                  value={formik.values.estimatedCost}
-                  onChange={formik.handleChange}
-                  error={formik.touched.estimatedCost && Boolean(formik.errors.estimatedCost)}
-                  helperText={formik.touched.estimatedCost && formik.errors.estimatedCost}
-                />
-              </Grid>
+      <Grid container spacing={3}>
+        {/* Quick Stats */}
+        <Grid item xs={12}>
+          <Grid container spacing={2}>
+            <Grid item xs={12} md={4}>
+              <MotionCard
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+                sx={{ height: '100%' }}
+              >
+                <CardContent>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                    <InventoryIcon color="primary" sx={{ mr: 1 }} />
+                    <Typography variant="h6">Total Products</Typography>
+                  </Box>
+                  <Typography variant="h4" color="primary">
+                    {products.length}
+                  </Typography>
+                </CardContent>
+              </MotionCard>
             </Grid>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleClose}>Cancel</Button>
-            <Button type="submit" variant="contained">
-              {editingProduct ? 'Update' : 'Add'}
-            </Button>
-          </DialogActions>
-        </form>
+            <Grid item xs={12} md={4}>
+              <MotionCard
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+                sx={{ height: '100%' }}
+              >
+                <CardContent>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                    <AssignmentIcon color="warning" sx={{ mr: 1 }} />
+                    <Typography variant="h6">Pending Orders</Typography>
+                  </Box>
+                  <Typography variant="h4" color="warning.main">
+                    {products.filter(p => p.status === 'pending').length}
+                  </Typography>
+                </CardContent>
+              </MotionCard>
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <MotionCard
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+                sx={{ height: '100%' }}
+              >
+                <CardContent>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                    <ShoppingCartIcon color="success" sx={{ mr: 1 }} />
+                    <Typography variant="h6">Total Orders</Typography>
+                  </Box>
+                  <Typography variant="h4" color="success.main">
+                    {products.length}
+                  </Typography>
+                </CardContent>
+              </MotionCard>
+            </Grid>
+          </Grid>
+        </Grid>
+
+        {/* Products Table */}
+        <Grid item xs={12}>
+          <MotionPaper
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+          >
+            <TableContainer>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>GIN</TableCell>
+                    <TableCell>Date</TableCell>
+                    <TableCell>Department</TableCell>
+                    <TableCell>Bill No</TableCell>
+                    <TableCell>Vendor</TableCell>
+                    <TableCell>Total Items</TableCell>
+                    <TableCell>Status</TableCell>
+                    <TableCell align="center">Actions</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {products.map((product) => (
+                    <TableRow key={product.id}>
+                      <TableCell>{product.gin}</TableCell>
+                      <TableCell>{product.date}</TableCell>
+                      <TableCell>{product.department}</TableCell>
+                      <TableCell>{product.billNo}</TableCell>
+                      <TableCell>{product.vendor.name}</TableCell>
+                      <TableCell>{product.items.length}</TableCell>
+                      <TableCell>
+                        <Chip
+                          label={product.status}
+                          color={getStatusColor(product.status)}
+                          size="small"
+                        />
+                      </TableCell>
+                      <TableCell align="center">
+                        <IconButton color="primary" size="small">
+                          <EditIcon />
+                        </IconButton>
+                        <IconButton color="error" size="small">
+                          <DeleteIcon />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </MotionPaper>
+        </Grid>
+      </Grid>
+
+      <Dialog
+        open={openDialog}
+        onClose={handleCloseDialog}
+        maxWidth="lg"
+        fullWidth
+      >
+        <DialogTitle>
+          {dialogType === 'order' ? 'Create New Order' : 'Add New Product'}
+        </DialogTitle>
+        <DialogContent>
+          <ProductForm onSubmit={handleSubmit} />
+        </DialogContent>
       </Dialog>
     </Box>
   );
