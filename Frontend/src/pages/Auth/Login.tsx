@@ -11,12 +11,14 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  CircularProgress,
 } from '@mui/material';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { motion } from 'framer-motion';
+import { AxiosError } from 'axios';
 
 const MotionPaper = motion(Paper);
 
@@ -42,20 +44,29 @@ const Login: React.FC = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
   const [error, setError] = React.useState<string | null>(null);
+  const [loading, setLoading] = React.useState(false);
 
   const formik = useFormik({
     initialValues: {
       email: '',
       password: '',
-      role: 'store_manager' as const,
+      role: 'store_manager',
     },
     validationSchema,
     onSubmit: async (values: LoginFormValues) => {
       try {
+        setError(null);
+        setLoading(true);
         await login(values.email, values.password, values.role);
         navigate('/dashboard');
       } catch (err) {
-        setError('Invalid email or password');
+        const axiosError = err as AxiosError<{ message: string }>;
+        setError(
+          axiosError.response?.data?.message || 
+          'An error occurred during login. Please try again.'
+        );
+      } finally {
+        setLoading(false);
       }
     },
   });
@@ -101,6 +112,7 @@ const Login: React.FC = () => {
               helperText={formik.touched.email && formik.errors.email}
               margin="normal"
               autoComplete="email"
+              disabled={loading}
             />
             <TextField
               fullWidth
@@ -114,6 +126,7 @@ const Login: React.FC = () => {
               helperText={formik.touched.password && formik.errors.password}
               margin="normal"
               autoComplete="current-password"
+              disabled={loading}
             />
             <FormControl fullWidth margin="normal">
               <InputLabel id="role-label">Role</InputLabel>
@@ -125,6 +138,7 @@ const Login: React.FC = () => {
                 onChange={formik.handleChange}
                 error={formik.touched.role && Boolean(formik.errors.role)}
                 label="Role"
+                disabled={loading}
               >
                 <MenuItem value="store_manager">Store Manager</MenuItem>
                 <MenuItem value="hod">Head of Department (HOD)</MenuItem>
@@ -140,8 +154,13 @@ const Login: React.FC = () => {
               fullWidth
               variant="contained"
               sx={{ mt: 3, mb: 2 }}
+              disabled={loading}
             >
-              Sign In
+              {loading ? (
+                <CircularProgress size={24} color="inherit" />
+              ) : (
+                'Sign In'
+              )}
             </Button>
           </form>
         </MotionPaper>
