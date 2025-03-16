@@ -15,6 +15,7 @@ import authRoutes from './routes/auth.routes';
 import productRoutes from './routes/product.routes';
 import requestRoutes from './routes/request.routes';
 import userRoutes from './routes/user.routes';
+import vendorRoutes from './routes/vendor.routes';
 
 const app = express();
 
@@ -31,6 +32,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/requests', requestRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/vendors', vendorRoutes);
 
 // Error handling
 app.use(errorHandler);

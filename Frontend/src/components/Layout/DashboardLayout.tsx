@@ -21,9 +21,8 @@ import {
   ShoppingCart as ShoppingCartIcon,
   Assignment as AssignmentIcon,
   People as PeopleIcon,
-  Settings as SettingsIcon,
-  ExitToApp as LogoutIcon,
-  CheckCircle as ApproveIcon,
+  Store as StoreIcon,
+  Business as BusinessIcon,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -31,87 +30,99 @@ import { useAuth } from '../../contexts/AuthContext';
 
 const drawerWidth = 240;
 
-interface DashboardLayoutProps {
-  children: React.ReactNode;
+interface MenuItem {
+  text: string;
+  icon: JSX.Element;
+  path: string;
+  roles: string[];
 }
 
-const storeManagerMenuItems = [
-  { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
-  { text: 'Products', icon: <InventoryIcon />, path: '/products' },
-  { text: 'Orders', icon: <ShoppingCartIcon />, path: '/orders' },
-  { text: 'Settings', icon: <SettingsIcon />, path: '/settings' },
+const menuItems: MenuItem[] = [
+  {
+    text: 'Dashboard',
+    icon: <DashboardIcon />,
+    path: '/dashboard',
+    roles: ['store_manager', 'hod'],
+  },
+  {
+    text: 'Products',
+    icon: <InventoryIcon />,
+    path: '/products',
+    roles: ['store_manager', 'hod'],
+  },
+  {
+    text: 'Orders',
+    icon: <ShoppingCartIcon />,
+    path: '/orders',
+    roles: ['store_manager', 'hod'],
+  },
+  {
+    text: 'Requests',
+    icon: <AssignmentIcon />,
+    path: '/requests',
+    roles: ['store_manager', 'hod'],
+  },
+  {
+    text: 'Users',
+    icon: <PeopleIcon />,
+    path: '/users',
+    roles: ['store_manager'],
+  },
+  {
+    text: 'Vendors',
+    icon: <BusinessIcon />,
+    path: '/vendors',
+    roles: ['store_manager'],
+  },
+  {
+    text: 'Store',
+    icon: <StoreIcon />,
+    path: '/store',
+    roles: ['store_manager', 'hod'],
+  },
 ];
 
-const hodMenuItems = [
-  { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
-  { text: 'Requests', icon: <AssignmentIcon />, path: '/requests' },
-  { text: 'Approve Requests', icon: <ApproveIcon />, path: '/approve-requests' },
-  { text: 'Settings', icon: <SettingsIcon />, path: '/settings' },
-];
-
-const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
+const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
 
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
-
-  const menuItems = user?.role === 'store_manager' ? storeManagerMenuItems : hodMenuItems;
-
   const drawer = (
-    <Box>
+    <div>
       <Toolbar>
-        <Typography variant="h6" noWrap component="div">
+        <Typography variant="h6" noWrap>
           Store Management
         </Typography>
       </Toolbar>
       <Divider />
       <List>
-        {menuItems.map((item) => (
-          <ListItem
-            button
-            key={item.text}
-            onClick={() => {
-              navigate(item.path);
-              if (isMobile) setMobileOpen(false);
-            }}
-            sx={{
-              backgroundColor: location.pathname === item.path ? 'action.selected' : 'transparent',
-              '&:hover': {
-                backgroundColor: 'action.hover',
-              },
-            }}
-          >
-            <ListItemIcon sx={{ color: location.pathname === item.path ? 'primary.main' : 'inherit' }}>
-              {item.icon}
-            </ListItemIcon>
-            <ListItemText primary={item.text} />
-          </ListItem>
-        ))}
+        {menuItems
+          .filter((item) => item.roles.includes(user?.role || ''))
+          .map((item) => (
+            <ListItem
+              button
+              key={item.text}
+              onClick={() => {
+                navigate(item.path);
+                if (isMobile) {
+                  handleDrawerToggle();
+                }
+              }}
+              selected={location.pathname === item.path}
+            >
+              <ListItemIcon>{item.icon}</ListItemIcon>
+              <ListItemText primary={item.text} />
+            </ListItem>
+          ))}
       </List>
-      <Divider />
-      <List>
-        <ListItem
-          button
-          onClick={handleLogout}
-        >
-          <ListItemIcon>
-            <LogoutIcon />
-          </ListItemIcon>
-          <ListItemText primary="Logout" />
-        </ListItem>
-      </List>
-    </Box>
+    </div>
   );
 
   return (
@@ -134,11 +145,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
             <MenuIcon />
           </IconButton>
           <Typography variant="h6" noWrap component="div">
-            {menuItems.find(item => item.path === location.pathname)?.text || 'Dashboard'}
-          </Typography>
-          <Box sx={{ flexGrow: 1 }} />
-          <Typography variant="subtitle1" sx={{ mr: 2 }}>
-            {user?.name} ({user?.role === 'store_manager' ? 'Store Manager' : 'HOD'})
+            {menuItems.find((item) => item.path === location.pathname)?.text || 'Dashboard'}
           </Typography>
         </Toolbar>
       </AppBar>
@@ -146,33 +153,32 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         component="nav"
         sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
       >
-        {isMobile ? (
-          <Drawer
-            variant="temporary"
-            open={mobileOpen}
-            onClose={handleDrawerToggle}
-            ModalProps={{
-              keepMounted: true,
-            }}
-            sx={{
-              display: { xs: 'block', sm: 'none' },
-              '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
-            }}
-          >
-            {drawer}
-          </Drawer>
-        ) : (
-          <Drawer
-            variant="permanent"
-            sx={{
-              display: { xs: 'none', sm: 'block' },
-              '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
-            }}
-            open
-          >
-            {drawer}
-          </Drawer>
-        )}
+        {/* Mobile drawer */}
+        <Drawer
+          variant="temporary"
+          open={mobileOpen}
+          onClose={handleDrawerToggle}
+          ModalProps={{
+            keepMounted: true, // Better open performance on mobile.
+          }}
+          sx={{
+            display: { xs: 'block', sm: 'none' },
+            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
+          }}
+        >
+          {drawer}
+        </Drawer>
+        {/* Desktop drawer */}
+        <Drawer
+          variant="permanent"
+          sx={{
+            display: { xs: 'none', sm: 'block' },
+            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
+          }}
+          open
+        >
+          {drawer}
+        </Drawer>
       </Box>
       <Box
         component="main"

@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { authAPI } from '../services/api';
 
 interface User {
-  id: string;
+  _id: string;
   name: string;
   email: string;
   role: 'store_manager' | 'hod';
@@ -10,8 +11,9 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
+  token: string | null;
   isAuthenticated: boolean;
-  login: (email: string, password: string, role: 'store_manager' | 'hod') => Promise<void>;
+  login: (email: string, password: string, role: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -27,46 +29,46 @@ export const useAuth = () => {
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [token, setToken] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    // Check for stored authentication
+    const storedToken = localStorage.getItem('token');
     const storedUser = localStorage.getItem('user');
-    if (storedUser) {
+
+    if (storedToken && storedUser) {
+      setToken(storedToken);
       setUser(JSON.parse(storedUser));
       setIsAuthenticated(true);
     }
   }, []);
 
-  const login = async (email: string, password: string, role: 'store_manager' | 'hod') => {
+  const login = async (email: string, password: string, role: string) => {
     try {
-      // TODO: Replace with actual API call
-      // For now, using mock data
-      const mockUser: User = {
-        id: '1',
-        name: role === 'store_manager' ? 'Store Manager' : 'HOD',
-        email: email,
-        role: role,
-        department: role === 'hod' ? 'Computer Science' : undefined,
-      };
+      const response = await authAPI.login(email, password, role);
+      const { token, data } = response.data;
 
-      setUser(mockUser);
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+
+      setToken(token);
+      setUser(data.user);
       setIsAuthenticated(true);
-      localStorage.setItem('user', JSON.stringify(mockUser));
     } catch (error) {
-      console.error('Login failed:', error);
       throw error;
     }
   };
 
   const logout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setToken(null);
     setUser(null);
     setIsAuthenticated(false);
-    localStorage.removeItem('user');
   };
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, login, logout }}>
+    <AuthContext.Provider value={{ user, token, isAuthenticated, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

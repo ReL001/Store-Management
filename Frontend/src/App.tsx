@@ -8,6 +8,7 @@ import Dashboard from './pages/StoreManager/Dashboard';
 import ProductManagement from './pages/StoreManager/ProductManagement';
 import RequestReview from './pages/HOD/RequestReview';
 import ApproveRequests from './pages/HOD/ApproveRequests';
+import VendorManagement from './pages/StoreManager/VendorManagement';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 
 // Create a theme instance
@@ -50,31 +51,17 @@ const App: React.FC = () => {
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route
-              path="/dashboard"
+              path="/"
               element={
                 <PrivateRoute>
                   <DashboardLayout>
-                    <Dashboard />
-                  </DashboardLayout>
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/products"
-              element={
-                <PrivateRoute allowedRoles={['store_manager']}>
-                  <DashboardLayout>
-                    <ProductManagement />
-                  </DashboardLayout>
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/requests"
-              element={
-                <PrivateRoute allowedRoles={['hod']}>
-                  <DashboardLayout>
-                    <RequestReview />
+                    <Routes>
+                      <Route path="/" element={<Navigate to="/dashboard" />} />
+                      <Route path="/dashboard" element={<Dashboard />} />
+                      <Route path="/products" element={<ProductManagement />} />
+                      <Route path="/requests" element={<RequestReview />} />
+                      <Route path="/vendors" element={<VendorManagement />} />
+                    </Routes>
                   </DashboardLayout>
                 </PrivateRoute>
               }
@@ -89,7 +76,6 @@ const App: React.FC = () => {
                 </PrivateRoute>
               }
             />
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </Router>
       </AuthProvider>
