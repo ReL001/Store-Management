@@ -4,6 +4,7 @@ import { ThemeProvider, CssBaseline } from '@mui/material';
 import { AuthProvider } from './contexts/AuthContext';
 import theme from './theme';
 import Login from './pages/Auth/Login';
+import Register from './pages/Auth/Register';
 import DashboardLayout from './components/Layout/DashboardLayout';
 import PrivateRoute from './components/PrivateRoute';
 import VendorManagement from './pages/StoreManager/VendorManagement';
@@ -20,6 +21,7 @@ const App: React.FC = () => {
         <Router>
           <Routes>
             <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route
               path="/dashboard"
