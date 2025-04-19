@@ -69,10 +69,10 @@ export const loginUser = asyncHandler(async (req, res) => {
 
   //Validate data
   if (!username && !email) {
-    throw new ApiError(400, "Username or email is required");
+    return res.status(400).json({ message: "Username or email is required" });
   }
   if (!password) {
-    throw new ApiError(400, "Password is required");
+    return res.status(400).json({ message: "Password is required" });
   }
 
   //Authentication
@@ -81,13 +81,13 @@ export const loginUser = asyncHandler(async (req, res) => {
   });
 
   if (!user) {
-    throw new ApiError(404, "User does not exist");
+    return res.status(404).json({ message: "User does not exist" });
   }
 
   const isPasswordValid = await user.comparePassword(password);
 
   if (!isPasswordValid) {
-    throw new ApiError(401, "Incorret password");
+    return res.status(401).json({ message: "Incorrect password" });
   }
 
   //Generate access & refresh tokens
