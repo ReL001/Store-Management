@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
-import { User } from '../models/user.model';
-import { AppError } from '../middleware/error.middleware';
+import { User } from '../models/user.model.js';
+import { AppError } from '../middleware/error.middleware.js';
 
 const signToken = (id: string) => {
   return jwt.sign({ id }, process.env.JWT_SECRET!, {
@@ -124,4 +124,4 @@ export const getMe = async (
   } catch (error) {
     next(error);
   }
-}; 
+};

@@ -1,12 +1,14 @@
 {
-  "name": "streamsphere",
+  "name": "store-management-system",
   "version": "1.0.0",
-  "description": "Complete Video Hosting website similar to youtube with features like login, signup, upload video, like, dislike, comment, reply, subscribe, unsuscribe, etc",
-  "main": "index.js",
+  "description": "College Store Management System Backend",
+  "main": "dist/server.js",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon -r dotenv/config --experimental-json-modules src/index.js"
+    "start": "node dist/server.js",
+    "build": "tsc",
+    "dev": "nodemon --exec \"node --loader ts-node/esm src/server.ts\"",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
     "backend",
@@ -20,7 +22,9 @@
   "license": "ISC",
   "devDependencies": {
     "nodemon": "^3.1.0",
-    "prettier": "^3.3.3"
+    "prettier": "^3.3.3",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
   },
   "dependencies": {
     "@types/express": "^5.0.0",
