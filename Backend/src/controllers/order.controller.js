@@ -124,3 +124,20 @@ export const deleteOrder = async (req, res) => {
     throw new ApiError(500, "Internal server error");
   }
 };
+
+export const getRecentOrders = async (req, res) => {
+  try {
+    const recentOrders = await Order.find()
+      .sort({ createdAt: -1 }) // Most recent first
+      .limit(3);
+
+    res
+      .status(200)
+      .json(
+        new ApiResponse(200, recentOrders, "Recent orders fetched successfully")
+      );
+  } catch (error) {
+    console.error("Error fetching recent orders:", error);
+    throw new ApiError(500, "Internal server error");
+  }
+};
