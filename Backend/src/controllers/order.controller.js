@@ -141,3 +141,49 @@ export const getRecentOrders = async (req, res) => {
     throw new ApiError(500, "Internal server error");
   }
 };
+
+export const getOrders = async (req, res) => {
+  try {
+    // Get optional query parameters for filtering (status, vendor, etc.)
+    const { status, vendor, limit = 10, page = 1 } = req.query;
+
+    // Create the filter object based on provided query params
+    const filter = {};
+
+    // Filter by status if provided
+    if (status) {
+      filter.status = status;
+    }
+
+    // Filter by vendor if provided
+    if (vendor) {
+      filter.vendor = vendor;
+    }
+
+    // Pagination: Calculate skip value for pagination
+    const skip = (page - 1) * limit;
+
+    // Fetch the orders with the applied filters and pagination
+    const orders = await Order.find(filter)
+      .skip(skip)
+      .limit(Number(limit))
+      .sort({ createdAt: -1 }); // Sort by creation date, most recent first
+
+    // Count total orders (for pagination purposes)
+    const totalOrders = await Order.countDocuments(filter);
+
+    // Send the response with the orders and total count
+    res
+      .status(200)
+      .json(
+        new ApiResponse(
+          200,
+          { orders, totalOrders },
+          "Orders fetched successfully"
+        )
+      );
+  } catch (error) {
+    console.error("Error fetching orders:", error);
+    throw new ApiError(500, "Internal server error");
+  }
+};

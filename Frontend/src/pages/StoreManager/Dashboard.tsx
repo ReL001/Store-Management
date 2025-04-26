@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   Box,
   Grid,
@@ -9,6 +9,7 @@ import {
   LinearProgress,
   IconButton,
   useTheme,
+  CircularProgress,
 } from "@mui/material";
 import {
   Inventory as InventoryIcon,
@@ -20,6 +21,7 @@ import {
 import { motion } from "framer-motion";
 import { useRecentOrders } from "../../lib/react-query/hooks/useRecentOrders";
 import { format } from "date-fns";
+import { useGetOrders } from "../../lib/react-query/hooks/useGetOrders";
 
 const MotionPaper = motion(Paper);
 
@@ -72,6 +74,20 @@ const StatCard: React.FC<{
 const Dashboard: React.FC = () => {
   const theme = useTheme();
   const { data: orders, isLoading, isError } = useRecentOrders();
+  const {
+    data: pendingOrders,
+    isLoading: loadingPending,
+    isError: errorPending,
+  } = useGetOrders("pending");
+  // console.log("Fetched Pending Orders:", pendingOrders);
+  const {
+    data: approvedOrders,
+    isLoading: loadingApproved,
+    isError: errorApproved,
+  } = useGetOrders("approved");
+
+  const pendingCount = pendingOrders?.totalOrders || 0;
+  const approvedCount = approvedOrders?.totalOrders || 0;
 
   return (
     <Box sx={{ flexGrow: 1, p: 3 }}>
@@ -92,16 +108,28 @@ const Dashboard: React.FC = () => {
         <Grid item xs={12} md={3}>
           <StatCard
             title="Pending Requests"
-            value="8"
+            value={
+              loadingPending ? (
+                <CircularProgress size={24} />
+              ) : (
+                pendingCount.toString()
+              )
+            }
             icon={<AssignmentIcon />}
             color="#f50057"
-            trend="3 new this week"
+            trend={`${pendingCount} pending`}
           />
         </Grid>
         <Grid item xs={12} md={3}>
           <StatCard
             title="Approved Requests"
-            value="45"
+            value={
+              loadingApproved ? (
+                <CircularProgress size={24} />
+              ) : (
+                approvedCount.toString()
+              )
+            }
             icon={<CheckCircleIcon />}
             color="#4caf50"
             trend="+5% from last month"
@@ -133,7 +161,12 @@ const Dashboard: React.FC = () => {
               Recent Requests
             </Typography>
             <Box sx={{ mt: 2 }}>
-              {isLoading && <Typography>Loading recent requests...</Typography>}
+              {isLoading && (
+                <Typography>
+                  Loading recent requests...
+                  <CircularProgress size={24} />
+                </Typography>
+              )}
               {isError && (
                 <Typography color="error">
                   Failed to load recent requests
