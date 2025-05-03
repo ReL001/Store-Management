@@ -24,6 +24,7 @@ import {
   Settings as SettingsIcon,
   ExitToApp as LogoutIcon,
   CheckCircle as ApproveIcon,
+  Business as BusinessIcon,
 } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -38,6 +39,7 @@ interface DashboardLayoutProps {
 const storeManagerMenuItems = [
   { text: "Dashboard", icon: <DashboardIcon />, path: "/dashboard" },
   { text: "Orders", icon: <ShoppingCartIcon />, path: "/orders" },
+  { text: "Vendors", icon: <BusinessIcon />, path: "/vendors" },
   { text: "Settings", icon: <SettingsIcon />, path: "/settings" },
 ];
 
