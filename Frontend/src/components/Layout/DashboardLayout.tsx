@@ -37,7 +37,6 @@ interface DashboardLayoutProps {
 
 const storeManagerMenuItems = [
   { text: "Dashboard", icon: <DashboardIcon />, path: "/dashboard" },
-  { text: "Products", icon: <InventoryIcon />, path: "/products" },
   { text: "Orders", icon: <ShoppingCartIcon />, path: "/orders" },
   { text: "Settings", icon: <SettingsIcon />, path: "/settings" },
 ];
@@ -149,7 +148,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
           </Typography>
           <Box sx={{ flexGrow: 1 }} />
           <Typography variant="subtitle1" sx={{ mr: 2 }}>
-            {user?.username} (
+            {user?.username.toUpperCase()} (
             {user?.role === "manager" ? "Store Manager" : "HOD"})
           </Typography>
         </Toolbar>
