@@ -21,8 +21,10 @@ app.use(cookieParser());
 
 import userRouter from "./routes/user.routes.js";
 import orderRouter from "./routes/order.routes.js";
+import vendorRouter from "./routes/vendor.routes.js";
 
 app.use("/api/users", userRouter);
 app.use("/api/orders", orderRouter);
+app.use("/api/vendors", vendorRouter);
 
 export { app }; //export the app object to make it available to other modules.
