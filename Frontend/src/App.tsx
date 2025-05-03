@@ -18,6 +18,7 @@ import ApproveRequests from "./pages/HOD/ApproveRequests";
 import { AuthProvider } from "contexts/AuthContext";
 import OrderManagement from "./pages/StoreManager/OrderManagement";
 import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css"; // <-- Required for styling
 
 // MUI Theme
 const theme = createTheme({
