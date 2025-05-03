@@ -106,34 +106,30 @@ const Dashboard: React.FC = () => {
           />
         </Grid>
         <Grid item xs={12} md={3}>
-          <StatCard
-            title="Pending Requests"
-            value={
-              loadingPending ? (
-                <CircularProgress size={24} />
-              ) : (
-                pendingCount.toString()
-              )
-            }
-            icon={<AssignmentIcon />}
-            color="#f50057"
-            trend={`${pendingCount} pending`}
-          />
+          {loadingPending ? (
+            <CircularProgress size={24} />
+          ) : (
+            <StatCard
+              title="Pending Requests"
+              value={pendingCount.toString()}
+              icon={<AssignmentIcon />}
+              color="#f50057"
+              trend={`${pendingCount} pending`}
+            />
+          )}
         </Grid>
         <Grid item xs={12} md={3}>
-          <StatCard
-            title="Approved Requests"
-            value={
-              loadingApproved ? (
-                <CircularProgress size={24} />
-              ) : (
-                approvedCount.toString()
-              )
-            }
-            icon={<CheckCircleIcon />}
-            color="#4caf50"
-            trend="+5% from last month"
-          />
+          {loadingApproved ? (
+            <CircularProgress size={24} />
+          ) : (
+            <StatCard
+              title="Approved Requests"
+              value={approvedCount.toString()}
+              icon={<CheckCircleIcon />}
+              color="#4caf50"
+              trend={`${approvedCount} approved`}
+            />
+          )}
         </Grid>
         <Grid item xs={12} md={3}>
           <StatCard
