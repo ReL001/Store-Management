@@ -28,6 +28,7 @@ export interface Order {
   status: "pending" | "approved" | "rejected";
   createdAt: string;
   updatedAt: string;
+  createdBy?: string; // Added createdBy property as optional
 }
 
 export interface OrdersData {

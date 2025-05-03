@@ -34,22 +34,15 @@ import {
   Close,
 } from "@mui/icons-material";
 import { motion } from "framer-motion";
-import ProductForm from "./OrderForm";
 import OrderForm from "./OrderForm";
 import { useGetOrders } from "lib/react-query/hooks/useGetOrders";
 import { Order, OrdersData } from "types/order";
 import { useDeleteOrderMutation } from "lib/react-query/orderQueries";
 import { toast } from "react-toastify";
+import { Vendor } from "../../lib/react-query/vendorQueries";
 
 const MotionPaper = motion(Paper);
 const MotionCard = motion(Card);
-
-interface Vendor {
-  name: string;
-  address: string;
-  contact: string;
-  gstin: string;
-}
 
 interface Item {
   id: string;

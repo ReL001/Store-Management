@@ -24,6 +24,7 @@ import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useVendors } from '../../lib/react-query/hooks/useVendors';
 import { Vendor } from '../../lib/react-query/vendorQueries';
+import { useCreateOrder } from '../../lib/react-query/hooks/useCreateOrder';
 
 const MotionPaper = motion(Paper);
 
@@ -41,12 +42,21 @@ interface FormData {
   date: string;
   department: string;
   billNo: string;
-  vendor: string; // Changed to store vendor ID instead of object
+  vendor: Vendor; // Changed to store Vendor object
   items: Item[];
 }
 
-interface ProductFormProps {
+interface OrderFormProps {
   onSubmit: (data: FormData) => void;
+}
+
+// Define form values interface to avoid circular reference
+interface OrderFormValues {
+  gin: string;
+  date: string;
+  department: string;
+  billNo: string;
+  vendor: Vendor | null;
 }
 
 const validationSchema = Yup.object({
@@ -54,7 +64,7 @@ const validationSchema = Yup.object({
   date: Yup.date().required('Date is required'),
   department: Yup.string().required('Department is required'),
   billNo: Yup.string().required('Bill number is required'),
-  vendor: Yup.string().required('Vendor is required'),
+  vendor: Yup.object().required('Vendor is required'),
 });
 
 const departments = [
@@ -70,7 +80,7 @@ const departments = [
   "Other",
 ];
 
-const OrderForm: React.FC<ProductFormProps> = ({ onSubmit }) => {
+const OrderForm: React.FC<OrderFormProps> = ({ onSubmit }) => {
   const [items, setItems] = useState<Item[]>([
     { id: "1", name: "", description: "", quantity: 0, unitPrice: 0, total: 0 },
   ]);
@@ -78,6 +88,7 @@ const OrderForm: React.FC<ProductFormProps> = ({ onSubmit }) => {
   // Fetch vendors from the database
   const { data: vendorsData, isLoading: loadingVendors } = useVendors();
   const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(null);
+  const createOrderMutation = useCreateOrder();
 
   const formik = useFormik({
     initialValues: {
@@ -85,21 +96,12 @@ const OrderForm: React.FC<ProductFormProps> = ({ onSubmit }) => {
       date: new Date().toISOString().split('T')[0],
       department: '',
       billNo: '',
-      vendor: '',
+      vendor: null as Vendor | null,
     },
     validationSchema,
-    onSubmit: (values: {
-      gin: string;
-      date: string;
-      department: string;
-      billNo: string;
-      vendor: {
-        name: string;
-        address: string;
-        contact: string;
-        gstin: string;
-      };
-    }) => {
+    onSubmit: (values: OrderFormValues) => {
+      if (!selectedVendor) return;
+      
       // Prepare the payload
       const orderPayload = {
         ginDetails: {
@@ -109,11 +111,10 @@ const OrderForm: React.FC<ProductFormProps> = ({ onSubmit }) => {
           billNumber: values.billNo,
         },
         vendorDetails: {
-          name: values.vendor.name,
-          contactNumber: values.vendor.contact,
-          gstin: values.vendor.gstin,
-          address: values.vendor.address,
-          // Add vendorNumber if required
+          name: selectedVendor.name,
+          contactNumber: selectedVendor.phone,
+          gstin: selectedVendor.gstin || '',
+          address: selectedVendor.address,
         },
         items: items.map((item) => ({
           name: item.name,
@@ -122,6 +123,16 @@ const OrderForm: React.FC<ProductFormProps> = ({ onSubmit }) => {
           unitPrice: item.unitPrice,
         })),
       };
+      
+      // Pass the form data to parent component's onSubmit
+      onSubmit({
+        ...values,
+        vendor: selectedVendor,
+        items: items
+      } as FormData);
+      
+      // You can also directly submit using the mutation here
+      // createOrderMutation.mutate(orderPayload);
     },
   });
 
@@ -167,7 +178,7 @@ const OrderForm: React.FC<ProductFormProps> = ({ onSubmit }) => {
   // When a vendor is selected in the autocomplete, update the formik value
   const handleVendorChange = (vendor: Vendor | null) => {
     setSelectedVendor(vendor);
-    formik.setFieldValue('vendor', vendor ? vendor._id : '');
+    formik.setFieldValue('vendor', vendor);
   };
 
   return (
