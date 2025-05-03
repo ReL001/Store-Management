@@ -124,15 +124,17 @@ const OrderForm: React.FC<OrderFormProps> = ({ onSubmit }) => {
         })),
       };
       
-      // Pass the form data to parent component's onSubmit
-      onSubmit({
-        ...values,
-        vendor: selectedVendor,
-        items: items
-      } as FormData);
-      
-      // You can also directly submit using the mutation here
-      // createOrderMutation.mutate(orderPayload);
+      // Submit using the mutation instead of just passing to parent
+      createOrderMutation.mutate(orderPayload, {
+        onSuccess: () => {
+          // Pass the form data to parent component's onSubmit for any UI updates
+          onSubmit({
+            ...values,
+            vendor: selectedVendor,
+            items: items
+          } as FormData);
+        },
+      });
     },
   });
 
