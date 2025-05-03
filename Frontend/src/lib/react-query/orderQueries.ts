@@ -227,3 +227,30 @@ export const useCreateOrderMutation = (): UseMutationResult<
     },
   });
 };
+
+const deleteOrder = async (orderId: string) => {
+  const response = await fetch(
+    `http://localhost:4000/api/orders/delete/${orderId}`,
+    {
+      method: "DELETE",
+      credentials: "include",
+    }
+  );
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || "Failed to delete order");
+  }
+
+  return response.json();
+};
+
+export const useDeleteOrderMutation = () => {
+  return useMutation<string, Error, string>({
+    mutationFn: deleteOrder,
+    onSuccess: () => {
+      // Invalidate the orders query to refresh the list
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
+    },
+  });
+};

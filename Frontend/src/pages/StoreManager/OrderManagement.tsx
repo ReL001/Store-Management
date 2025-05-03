@@ -38,6 +38,8 @@ import ProductForm from "./OrderForm";
 import OrderForm from "./OrderForm";
 import { useGetOrders } from "lib/react-query/hooks/useGetOrders";
 import { Order, OrdersData } from "types/order";
+import { useDeleteOrderMutation } from "lib/react-query/orderQueries";
+import { toast } from "react-toastify";
 
 const MotionPaper = motion(Paper);
 const MotionCard = motion(Card);
@@ -188,6 +190,22 @@ const OrderManagement: React.FC = () => {
       default:
         return "default";
     }
+  };
+
+  // In your OrderManagement component, add the delete mutation hook:
+  const { mutate: deleteOrder, isPending: isDeleting } =
+    useDeleteOrderMutation();
+
+  // Add this delete handler function:
+  const handleDeleteOrder = (orderId: string) => {
+    deleteOrder(orderId, {
+      onSuccess: () => {
+        toast.success("Order deleted successfully");
+      },
+      onError: (error) => {
+        toast.error(error.message || "Failed to delete order");
+      },
+    });
   };
 
   // Loading and error states
@@ -434,8 +452,17 @@ const OrderManagement: React.FC = () => {
                           <IconButton color="primary" size="small">
                             <EditIcon />
                           </IconButton>
-                          <IconButton color="error" size="small">
-                            <DeleteIcon />
+                          <IconButton
+                            color="error"
+                            size="small"
+                            onClick={() => handleDeleteOrder(order._id)}
+                            disabled={isDeleting}
+                          >
+                            {isDeleting ? (
+                              <CircularProgress size={24} />
+                            ) : (
+                              <DeleteIcon />
+                            )}
                           </IconButton>
                         </TableCell>
                       </TableRow>
