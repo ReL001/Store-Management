@@ -12,11 +12,12 @@ import DashboardLayout from "./components/Layout/DashboardLayout";
 import Login from "./pages/Auth/Login";
 import ManagerDashboard from "./pages/StoreManager/Dashboard";
 import HodDashboard from "./pages/HOD/Dashboard";
-import ProductManagement from "./pages/StoreManager/ProductManagement";
 import VendorManagement from "./pages/StoreManager/VendorManagement";
 import RequestReview from "./pages/HOD/RequestReview";
 import ApproveRequests from "./pages/HOD/ApproveRequests";
 import { AuthProvider } from "contexts/AuthContext";
+import OrderManagement from "./pages/StoreManager/OrderManagement";
+import { ToastContainer } from "react-toastify";
 
 // MUI Theme
 const theme = createTheme({
@@ -93,11 +94,11 @@ const App: React.FC = () => {
             />
 
             <Route
-              path="/products"
+              path="/orders"
               element={
                 <PrivateRoute allowedRoles={["manager"]}>
                   <DashboardLayout>
-                    <ProductManagement />
+                    <OrderManagement />
                   </DashboardLayout>
                 </PrivateRoute>
               }
@@ -140,6 +141,19 @@ const App: React.FC = () => {
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </Router>
+        {/* Add this at the root level - only once in your app */}
+        <ToastContainer
+          position="top-right"
+          autoClose={5000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="colored"
+        />
       </ThemeProvider>
     </AuthProvider>
   );
