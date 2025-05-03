@@ -77,71 +77,69 @@ const App: React.FC = () => {
     <AuthProvider>
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <Router>
-          <Routes>
-            {/* Public Route */}
-            <Route path="/login" element={<Login />} />
+        <Routes>
+          {/* Public Route */}
+          <Route path="/login" element={<Login />} />
 
-            {/* Protected Routes */}
-            <Route
-              path="/dashboard"
-              element={
-                <PrivateRoute allowedRoles={["manager", "hod"]}>
-                  <DashboardLayout>
-                    <DashboardPage />
-                  </DashboardLayout>
-                </PrivateRoute>
-              }
-            />
+          {/* Protected Routes */}
+          <Route
+            path="/dashboard"
+            element={
+              <PrivateRoute allowedRoles={["manager", "hod"]}>
+                <DashboardLayout>
+                  <DashboardPage />
+                </DashboardLayout>
+              </PrivateRoute>
+            }
+          />
 
-            <Route
-              path="/orders"
-              element={
-                <PrivateRoute allowedRoles={["manager"]}>
-                  <DashboardLayout>
-                    <OrderManagement />
-                  </DashboardLayout>
-                </PrivateRoute>
-              }
-            />
+          <Route
+            path="/orders"
+            element={
+              <PrivateRoute allowedRoles={["manager"]}>
+                <DashboardLayout>
+                  <OrderManagement />
+                </DashboardLayout>
+              </PrivateRoute>
+            }
+          />
 
-            <Route
-              path="/vendors"
-              element={
-                <PrivateRoute allowedRoles={["manager"]}>
-                  <DashboardLayout>
-                    <VendorManagement />
-                  </DashboardLayout>
-                </PrivateRoute>
-              }
-            />
+          <Route
+            path="/vendors"
+            element={
+              <PrivateRoute allowedRoles={["manager"]}>
+                <DashboardLayout>
+                  <VendorManagement />
+                </DashboardLayout>
+              </PrivateRoute>
+            }
+          />
 
-            <Route
-              path="/requests"
-              element={
-                <PrivateRoute allowedRoles={["hod"]}>
-                  <DashboardLayout>
-                    <RequestReview />
-                  </DashboardLayout>
-                </PrivateRoute>
-              }
-            />
+          <Route
+            path="/requests"
+            element={
+              <PrivateRoute allowedRoles={["hod"]}>
+                <DashboardLayout>
+                  <RequestReview />
+                </DashboardLayout>
+              </PrivateRoute>
+            }
+          />
 
-            <Route
-              path="/approve-requests"
-              element={
-                <PrivateRoute allowedRoles={["hod"]}>
-                  <DashboardLayout>
-                    <ApproveRequests />
-                  </DashboardLayout>
-                </PrivateRoute>
-              }
-            />
+          <Route
+            path="/approve-requests"
+            element={
+              <PrivateRoute allowedRoles={["hod"]}>
+                <DashboardLayout>
+                  <ApproveRequests />
+                </DashboardLayout>
+              </PrivateRoute>
+            }
+          />
 
-            {/* Redirect unknown routes to dashboard */}
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
-          </Routes>
-        </Router>
+          {/* Redirect unknown routes to dashboard */}
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        </Routes>
         {/* Add this at the root level - only once in your app */}
         <ToastContainer
           position="top-right"
