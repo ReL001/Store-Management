@@ -34,22 +34,16 @@ import {
   Close,
 } from "@mui/icons-material";
 import { motion } from "framer-motion";
-import ProductForm from "./OrderForm";
 import OrderForm from "./OrderForm";
 import { useGetOrders } from "lib/react-query/hooks/useGetOrders";
 import { Order, OrdersData } from "types/order";
 import { useDeleteOrderMutation } from "lib/react-query/orderQueries";
 import { toast } from "react-toastify";
+import { Vendor } from "../../lib/react-query/vendorQueries";
+import { useQueryClient } from "@tanstack/react-query";
 
 const MotionPaper = motion(Paper);
 const MotionCard = motion(Card);
-
-interface Vendor {
-  name: string;
-  address: string;
-  contact: string;
-  gstin: string;
-}
 
 interface Item {
   id: string;
@@ -124,6 +118,8 @@ const OrderManagement: React.FC = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
+  const queryClient = useQueryClient();
+
   const {
     data: totalOrders,
     isLoading: loadingTotal,
@@ -170,13 +166,15 @@ const OrderManagement: React.FC = () => {
   };
 
   const handleSubmit = (formData: FormData) => {
-    const newProduct: Product = {
-      id: String(products.length + 1),
-      ...formData,
-      status: "pending",
-    };
-    setProducts([...products, newProduct]);
+    // The order is already submitted to the database in OrderForm component
+    // Just close the dialog and show success message
     handleCloseDialog();
+    toast.success("Order created successfully");
+    
+    // Refresh the orders data
+    setTimeout(() => {
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
+    }, 300);
   };
 
   const getStatusColor = (status: string) => {

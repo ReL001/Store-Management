@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Paper,
@@ -15,24 +15,18 @@ import {
   TableRow,
   MenuItem,
   Divider,
-} from "@mui/material";
-import { Add as AddIcon, Delete as DeleteIcon } from "@mui/icons-material";
-import { motion } from "framer-motion";
-import { useFormik } from "formik";
-import * as Yup from "yup";
-import { useCreateOrder } from "lib/react-query/hooks/useCreateOrder";
-// Add these imports at the top
-import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+  CircularProgress,
+  Autocomplete,
+} from '@mui/material';
+import { Add as AddIcon, Delete as DeleteIcon } from '@mui/icons-material';
+import { motion } from 'framer-motion';
+import { useFormik } from 'formik';
+import * as Yup from 'yup';
+import { useVendors } from '../../lib/react-query/hooks/useVendors';
+import { Vendor } from '../../lib/react-query/vendorQueries';
+import { useCreateOrder } from '../../lib/react-query/hooks/useCreateOrder';
 
 const MotionPaper = motion(Paper);
-
-interface Vendor {
-  name: string;
-  address: string;
-  contact: string;
-  gstin: string;
-}
 
 interface Item {
   id: string;
@@ -48,25 +42,29 @@ interface FormData {
   date: string;
   department: string;
   billNo: string;
-  vendor: Vendor;
+  vendor: Vendor; // Changed to store Vendor object
   items: Item[];
 }
 
-interface ProductFormProps {
+interface OrderFormProps {
   onSubmit: (data: FormData) => void;
 }
 
+// Define form values interface to avoid circular reference
+interface OrderFormValues {
+  gin: string;
+  date: string;
+  department: string;
+  billNo: string;
+  vendor: Vendor | null;
+}
+
 const validationSchema = Yup.object({
-  gin: Yup.string().required("GIN is required"),
-  date: Yup.date().required("Date is required"),
-  department: Yup.string().required("Department is required"),
-  billNo: Yup.string().required("Bill number is required"),
-  vendor: Yup.object({
-    name: Yup.string().required("Vendor name is required"),
-    address: Yup.string().required("Vendor address is required"),
-    contact: Yup.string().required("Vendor contact is required"),
-    gstin: Yup.string().required("GSTIN is required"),
-  }),
+  gin: Yup.string().required('GIN is required'),
+  date: Yup.date().required('Date is required'),
+  department: Yup.string().required('Department is required'),
+  billNo: Yup.string().required('Bill number is required'),
+  vendor: Yup.object().required('Vendor is required'),
 });
 
 const departments = [
@@ -82,38 +80,28 @@ const departments = [
   "Other",
 ];
 
-const OrderForm: React.FC<ProductFormProps> = ({ onSubmit }) => {
+const OrderForm: React.FC<OrderFormProps> = ({ onSubmit }) => {
   const [items, setItems] = useState<Item[]>([
     { id: "1", name: "", description: "", quantity: 0, unitPrice: 0, total: 0 },
   ]);
-  const { mutate: createOrder, isPending } = useCreateOrder();
+  
+  // Fetch vendors from the database
+  const { data: vendorsData, isLoading: loadingVendors } = useVendors();
+  const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(null);
+  const createOrderMutation = useCreateOrder();
 
   const formik = useFormik({
     initialValues: {
-      gin: "",
-      date: new Date().toISOString().split("T")[0],
-      department: "",
-      billNo: "",
-      vendor: {
-        name: "",
-        address: "",
-        contact: "",
-        gstin: "",
-      },
+      gin: '',
+      date: new Date().toISOString().split('T')[0],
+      department: '',
+      billNo: '',
+      vendor: null as Vendor | null,
     },
     validationSchema,
-    onSubmit: (values: {
-      gin: string;
-      date: string;
-      department: string;
-      billNo: string;
-      vendor: {
-        name: string;
-        address: string;
-        contact: string;
-        gstin: string;
-      };
-    }) => {
+    onSubmit: (values: OrderFormValues) => {
+      if (!selectedVendor) return;
+      
       // Prepare the payload
       const orderPayload = {
         ginDetails: {
@@ -123,11 +111,10 @@ const OrderForm: React.FC<ProductFormProps> = ({ onSubmit }) => {
           billNumber: values.billNo,
         },
         vendorDetails: {
-          name: values.vendor.name,
-          contactNumber: values.vendor.contact,
-          gstin: values.vendor.gstin,
-          address: values.vendor.address,
-          // Add vendorNumber if required
+          name: selectedVendor.name,
+          contactNumber: selectedVendor.phone,
+          gstin: selectedVendor.gstin || '',
+          address: selectedVendor.address,
         },
         items: items.map((item) => ({
           name: item.name,
@@ -136,26 +123,16 @@ const OrderForm: React.FC<ProductFormProps> = ({ onSubmit }) => {
           unitPrice: item.unitPrice,
         })),
       };
-
-      // Execute the mutation
-      createOrder(orderPayload, {
+      
+      // Submit using the mutation instead of just passing to parent
+      createOrderMutation.mutate(orderPayload, {
         onSuccess: () => {
-          toast.success("Order created successfully!");
-          // Optional: Reset form
-          formik.resetForm();
-          setItems([
-            {
-              id: "1",
-              name: "",
-              description: "",
-              quantity: 0,
-              unitPrice: 0,
-              total: 0,
-            },
-          ]);
-        },
-        onError: (error) => {
-          toast.error("Failed to create order");
+          // Pass the form data to parent component's onSubmit for any UI updates
+          onSubmit({
+            ...values,
+            vendor: selectedVendor,
+            items: items
+          } as FormData);
         },
       });
     },
@@ -198,6 +175,12 @@ const OrderForm: React.FC<ProductFormProps> = ({ onSubmit }) => {
         return item;
       })
     );
+  };
+
+  // When a vendor is selected in the autocomplete, update the formik value
+  const handleVendorChange = (vendor: Vendor | null) => {
+    setSelectedVendor(vendor);
+    formik.setFieldValue('vendor', vendor);
   };
 
   return (
@@ -290,70 +273,58 @@ const OrderForm: React.FC<ProductFormProps> = ({ onSubmit }) => {
               Vendor Details
             </Typography>
           </Grid>
-          <Grid item xs={12} md={6}>
-            <TextField
-              fullWidth
-              label="Vendor Name"
-              name="vendor.name"
-              value={formik.values.vendor.name}
-              onChange={formik.handleChange}
-              error={
-                formik.touched.vendor?.name &&
-                Boolean(formik.errors.vendor?.name)
-              }
-              helperText={
-                formik.touched.vendor?.name && formik.errors.vendor?.name
-              }
-            />
+          <Grid item xs={12} md={12}>
+            {loadingVendors ? (
+              <CircularProgress size={24} />
+            ) : (
+              <Autocomplete
+                id="vendor-select"
+                options={vendorsData?.vendors || []}
+                getOptionLabel={(option) => `${option.name} (${option.email})`}
+                value={selectedVendor}
+                onChange={(_, newValue) => handleVendorChange(newValue)}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Select Vendor"
+                    error={formik.touched.vendor && Boolean(formik.errors.vendor)}
+                    helperText={formik.touched.vendor && formik.errors.vendor}
+                  />
+                )}
+              />
+            )}
           </Grid>
-          <Grid item xs={12} md={6}>
-            <TextField
-              fullWidth
-              label="GSTIN"
-              name="vendor.gstin"
-              value={formik.values.vendor.gstin}
-              onChange={formik.handleChange}
-              error={
-                formik.touched.vendor?.gstin &&
-                Boolean(formik.errors.vendor?.gstin)
-              }
-              helperText={
-                formik.touched.vendor?.gstin && formik.errors.vendor?.gstin
-              }
-            />
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <TextField
-              fullWidth
-              label="Contact Number"
-              name="vendor.contact"
-              value={formik.values.vendor.contact}
-              onChange={formik.handleChange}
-              error={
-                formik.touched.vendor?.contact &&
-                Boolean(formik.errors.vendor?.contact)
-              }
-              helperText={
-                formik.touched.vendor?.contact && formik.errors.vendor?.contact
-              }
-            />
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <TextField
-              fullWidth
-              label="Address"
-              name="vendor.address"
-              value={formik.values.vendor.address}
-              onChange={formik.handleChange}
-              error={
-                formik.touched.vendor?.address &&
-                Boolean(formik.errors.vendor?.address)
-              }
-              helperText={
-                formik.touched.vendor?.address && formik.errors.vendor?.address
-              }
-            />
-          </Grid>
+          
+          {selectedVendor && (
+            <>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Contact Number"
+                  value={selectedVendor.phone}
+                  InputProps={{ readOnly: true }}
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="GSTIN"
+                  value={selectedVendor.gstin || 'N/A'}
+                  InputProps={{ readOnly: true }}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Address"
+                  value={selectedVendor.address}
+                  multiline
+                  rows={2}
+                  InputProps={{ readOnly: true }}
+                />
+              </Grid>
+            </>
+          )}
 
           {/* Items Section */}
           <Grid item xs={12}>
@@ -472,6 +443,7 @@ const OrderForm: React.FC<ProductFormProps> = ({ onSubmit }) => {
                 color="primary"
                 size="large"
                 sx={{ minWidth: 200 }}
+                disabled={!formik.isValid || items.some(item => !item.name || item.quantity <= 0)}
               >
                 Submit
               </Button>

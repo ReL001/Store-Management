@@ -12,7 +12,7 @@ import DashboardLayout from "./components/Layout/DashboardLayout";
 import Login from "./pages/Auth/Login";
 import ManagerDashboard from "./pages/StoreManager/Dashboard";
 import HodDashboard from "./pages/HOD/Dashboard";
-import ProductManagement from "./pages/StoreManager/OrderManagement";
+import VendorManagement from "./pages/StoreManager/VendorManagement";
 import RequestReview from "./pages/HOD/RequestReview";
 import ApproveRequests from "./pages/HOD/ApproveRequests";
 import { AuthProvider } from "contexts/AuthContext";
@@ -99,6 +99,17 @@ const App: React.FC = () => {
                 <PrivateRoute allowedRoles={["manager"]}>
                   <DashboardLayout>
                     <OrderManagement />
+                  </DashboardLayout>
+                </PrivateRoute>
+              }
+            />
+
+            <Route
+              path="/vendors"
+              element={
+                <PrivateRoute allowedRoles={["manager"]}>
+                  <DashboardLayout>
+                    <VendorManagement />
                   </DashboardLayout>
                 </PrivateRoute>
               }

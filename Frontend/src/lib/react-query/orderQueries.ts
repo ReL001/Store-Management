@@ -1,6 +1,7 @@
 // src/react-query/orderQueries.ts
-import { useQuery, UseQueryResult } from "@tanstack/react-query";
+import { useQuery, UseQueryResult, useMutation, UseMutationResult, useQueryClient } from "@tanstack/react-query";
 import { Order, OrdersData } from "types/order";
+import { queryClient } from "./queryClient"; // Import your existing instance
 
 interface OrderItem {
   name: string;
@@ -9,22 +10,6 @@ interface OrderItem {
   price?: number;
   _id: string;
 }
-
-// export interface Order {
-//   _id: string;
-//   items: OrderItem[];
-//   status: string;
-//   createdBy: string;
-//   approvedBy: string | null;
-//   createdAt: string;
-//   updatedAt: string;
-//   __v: number;
-// }
-
-// interface OrdersData {
-//   orders: Order[];
-//   totalOrders: number;
-// }
 
 interface ApiResponse {
   statusCode: number;
@@ -39,6 +24,27 @@ interface RecentOrdersResponse {
   data: Order[]; // Direct array of orders
   message: string;
   success: boolean;
+}
+
+interface CreateOrderPayload {
+  ginDetails: {
+    ginNumber: string;
+    date: string | Date;
+    department: string;
+    billNumber: string;
+  };
+  vendorDetails: {
+    name: string;
+    contactNumber: string;
+    gstin: string;
+    address: string;
+  };
+  items: Array<{
+    name: string;
+    description?: string;
+    quantity: number;
+    unitPrice: number;
+  }>;
 }
 
 function validateOrdersResponse(response: unknown): OrdersData {
@@ -139,36 +145,6 @@ export const useGetOrdersQuery = (
     refetchOnMount: true,
   });
 };
-
-// src/react-query/orderQueries.ts
-import {
-  useMutation,
-  UseMutationResult,
-  useQueryClient,
-} from "@tanstack/react-query";
-import { queryClient } from "./queryClient"; // Import your existing instance
-
-// ... (keep your existing interfaces and queries)
-interface CreateOrderPayload {
-  ginDetails: {
-    ginNumber: string;
-    date: string | Date;
-    department: string;
-    billNumber: string;
-  };
-  vendorDetails: {
-    name: string;
-    contactNumber: string;
-    gstin: string;
-    address: string;
-  };
-  items: Array<{
-    name: string;
-    description?: string;
-    quantity: number;
-    unitPrice: number;
-  }>;
-}
 
 const createOrder = async (orderData: CreateOrderPayload): Promise<Order> => {
   const response = await fetch("http://localhost:4000/api/orders/create", {

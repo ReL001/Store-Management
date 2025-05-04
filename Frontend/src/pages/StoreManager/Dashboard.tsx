@@ -17,11 +17,13 @@ import {
   CheckCircle as CheckCircleIcon,
   Warning as WarningIcon,
   TrendingUp as TrendingUpIcon,
+  Business as BusinessIcon,
 } from "@mui/icons-material";
 import { motion } from "framer-motion";
 import { useRecentOrders } from "../../lib/react-query/hooks/useRecentOrders";
 import { format } from "date-fns";
 import { useGetOrders } from "../../lib/react-query/hooks/useGetOrders";
+import { useNavigate } from "react-router-dom";
 
 const MotionPaper = motion(Paper);
 
@@ -73,6 +75,7 @@ const StatCard: React.FC<{
 
 const Dashboard: React.FC = () => {
   const theme = useTheme();
+  const navigate = useNavigate();
   const { data: orders, isLoading, isError } = useRecentOrders();
   const {
     data: pendingOrders,
@@ -245,9 +248,26 @@ const Dashboard: React.FC = () => {
             </Typography>
             <Box sx={{ mt: 2 }}>
               {[
-                { title: "Add New Product", icon: <InventoryIcon /> },
-                { title: "Create Request", icon: <AssignmentIcon /> },
-                { title: "View Reports", icon: <TrendingUpIcon /> },
+                { 
+                  title: "Add New Product", 
+                  icon: <InventoryIcon />,
+                  onClick: () => navigate("/products")
+                },
+                { 
+                  title: "Create Request", 
+                  icon: <AssignmentIcon />,
+                  onClick: () => navigate("/orders")
+                },
+                { 
+                  title: "Manage Vendors", 
+                  icon: <BusinessIcon />,
+                  onClick: () => navigate("/vendors") 
+                },
+                { 
+                  title: "View Reports", 
+                  icon: <TrendingUpIcon />,
+                  onClick: () => console.log("View reports clicked") 
+                },
               ].map((action, index) => (
                 <Card
                   key={index}
@@ -260,6 +280,7 @@ const Dashboard: React.FC = () => {
                       boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
                     },
                   }}
+                  onClick={action.onClick}
                 >
                   <CardContent sx={{ display: "flex", alignItems: "center" }}>
                     <IconButton sx={{ mr: 2, color: "primary.main" }}>
