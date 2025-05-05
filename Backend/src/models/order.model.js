@@ -29,6 +29,10 @@ const orderSchema = new mongoose.Schema(
         unitPrice: { type: Number, required: true, min: 0 }, // Renamed from 'price' for clarity
       },
     ],
+    totalPrice: {
+      type: Number,
+      required: true,
+    },
 
     // Approval Metadata (unchanged)
     status: {
@@ -36,6 +40,7 @@ const orderSchema = new mongoose.Schema(
       enum: ["pending", "approved", "rejected"],
       default: "pending",
     },
+    requestedChanges: String,
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",

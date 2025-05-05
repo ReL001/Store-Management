@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   Box,
   Paper,
@@ -13,13 +13,13 @@ import {
   Chip,
   IconButton,
   Tooltip,
-} from '@mui/material';
+} from "@mui/material";
 import {
   CheckCircle as ApproveIcon,
   Cancel as RejectIcon,
   Visibility as ViewIcon,
-} from '@mui/icons-material';
-import { motion } from 'framer-motion';
+} from "@mui/icons-material";
+import { motion } from "framer-motion";
 
 const MotionPaper = motion(Paper);
 
@@ -32,33 +32,37 @@ interface Request {
     quantity: number;
     description: string;
   }[];
-  status: 'pending' | 'approved' | 'rejected';
+  status: "pending" | "approved" | "rejected";
   date: string;
   totalAmount: number;
 }
 
 const mockRequests: Request[] = [
   {
-    id: '1',
-    department: 'Computer Science',
-    requester: 'John Doe',
+    id: "1",
+    department: "Computer Science",
+    requester: "John Doe",
     items: [
-      { name: 'Laptop', quantity: 5, description: 'For lab use' },
-      { name: 'Printer', quantity: 2, description: 'For department office' },
+      { name: "Laptop", quantity: 5, description: "For lab use" },
+      { name: "Printer", quantity: 2, description: "For department office" },
     ],
-    status: 'pending',
-    date: '2024-03-20',
+    status: "pending",
+    date: "2024-03-20",
     totalAmount: 250000,
   },
   {
-    id: '2',
-    department: 'Electronics',
-    requester: 'Jane Smith',
+    id: "2",
+    department: "Electronics",
+    requester: "Jane Smith",
     items: [
-      { name: 'Oscilloscope', quantity: 3, description: 'For practical sessions' },
+      {
+        name: "Oscilloscope",
+        quantity: 3,
+        description: "For practical sessions",
+      },
     ],
-    status: 'pending',
-    date: '2024-03-19',
+    status: "pending",
+    date: "2024-03-19",
     totalAmount: 150000,
   },
 ];
@@ -66,29 +70,29 @@ const mockRequests: Request[] = [
 const ApproveRequests: React.FC = () => {
   const handleApprove = (requestId: string) => {
     // TODO: Implement approve functionality
-    console.log('Approve request:', requestId);
+    console.log("Approve request:", requestId);
   };
 
   const handleReject = (requestId: string) => {
     // TODO: Implement reject functionality
-    console.log('Reject request:', requestId);
+    console.log("Reject request:", requestId);
   };
 
   const handleViewDetails = (requestId: string) => {
     // TODO: Implement view details functionality
-    console.log('View details:', requestId);
+    console.log("View details:", requestId);
   };
 
-  const getStatusColor = (status: Request['status']) => {
+  const getStatusColor = (status: Request["status"]) => {
     switch (status) {
-      case 'pending':
-        return 'warning';
-      case 'approved':
-        return 'success';
-      case 'rejected':
-        return 'error';
+      case "pending":
+        return "warning";
+      case "approved":
+        return "success";
+      case "rejected":
+        return "error";
       default:
-        return 'default';
+        return "default";
     }
   };
 
@@ -169,4 +173,4 @@ const ApproveRequests: React.FC = () => {
   );
 };
 
-export default ApproveRequests; 
+export default ApproveRequests;

@@ -126,7 +126,7 @@ const App: React.FC = () => {
             }
           />
 
-          <Route
+          {/* <Route
             path="/approve-requests"
             element={
               <PrivateRoute allowedRoles={["hod"]}>
@@ -135,7 +135,7 @@ const App: React.FC = () => {
                 </DashboardLayout>
               </PrivateRoute>
             }
-          />
+          /> */}
 
           {/* Redirect unknown routes to dashboard */}
           <Route path="*" element={<Navigate to="/dashboard" replace />} />

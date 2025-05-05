@@ -151,7 +151,6 @@ const Dashboard: React.FC = () => {
             />
           )}
         </Grid>
-
         <Grid item xs={12} md={3}>
           <StatCard
             title="Department Budget"
@@ -168,7 +167,7 @@ const Dashboard: React.FC = () => {
             transition={{ duration: 0.5, delay: 0.2 }}
             sx={{
               p: 3,
-              height: 400,
+              // height: 400,
               borderRadius: 2,
               boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
             }}
@@ -209,7 +208,10 @@ const Dashboard: React.FC = () => {
                               ` (+${order.items.length - 1} more)`}
                           </Typography>
                           <Typography variant="body2" color="text.secondary">
-                            Requested by: {order.createdBy || "Unknown"}
+                            Requested by:{" "}
+                            {(typeof order.createdBy === "object" &&
+                              order.createdBy?.username) ||
+                              "Unknown"}
                           </Typography>
                         </Box>
                       </Box>

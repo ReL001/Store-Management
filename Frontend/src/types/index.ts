@@ -1,8 +1,9 @@
 export interface User {
   id: string;
   email: string;
-  role: 'store_manager' | 'hod';
-  name: string;
+  role: "manager" | "hod";
+  username: string;
+  department: string;
 }
 
 export interface Product {
@@ -21,7 +22,7 @@ export interface Request {
   quantity: number;
   unit: string;
   estimatedCost: number;
-  status: 'pending' | 'approved' | 'rejected' | 'changes_requested';
+  status: "pending" | "approved" | "rejected" | "changes_requested";
   storeManager: string;
   date: string;
   comments?: string;
@@ -32,4 +33,4 @@ export interface AuthState {
   isAuthenticated: boolean;
   loading: boolean;
   error: string | null;
-} 
+}

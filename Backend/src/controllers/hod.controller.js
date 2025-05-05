@@ -3,36 +3,42 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
 import { Order } from "../models/order.model.js";
 
-export const ApproveOrder = asyncHandler(async (req, res) => {
+export const handleOrderAction = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { action, message } = req.body; // message only used for 'request_changes'
   const user = req.user;
 
-  if (user.role != "hod") {
-    throw new ApiError(401, "You are not allowed to access this resource!");
+  const update = {
+    status:
+      action === "approve"
+        ? "approved"
+        : action === "reject"
+          ? "rejected"
+          : "changes_requested",
+    approvedBy: user._id,
+    updatedAt: new Date(),
+  };
+
+  // Only add message if requesting changes
+  if (action === "request_changes") {
+    update.requestedChanges = message || "Changes requested";
   }
 
-  const { id } = req.params;
+  const order = await Order.findByIdAndUpdate(
+    id,
+    { $set: update },
+    { new: true }
+  );
 
-  const currentOrder = await Order.findById(id);
+  if (!order) throw new ApiError(404, "Order not found");
 
-  const { toApprove } = req.body;
-
-  try {
-    if (toApprove) {
-      currentOrder.status = "approved";
-      currentOrder.approvedBy = user._id;
-      await currentOrder.save();
-      return res
-        .status(200)
-        .json(new ApiResponse(200, "Order approved successfully"));
-    } else {
-      currentOrder.status = "rejected";
-      currentOrder.approvedBy = user._id;
-      await currentOrder.save();
-      return res
-        .status(200)
-        .json(new ApiResponse(200, "Order rejected successfully"));
-    }
-  } catch (error) {
-    throw new Error(500, "Error updating status");
-  }
+  res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        order,
+        `Order ${action.replace("_", " ")} successful`
+      )
+    );
 });

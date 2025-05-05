@@ -38,8 +38,22 @@ const userSchema = new Schema(
     role: {
       type: String,
       required: true,
-      enum: ["hod", "manager", "assistant"],
+      enum: ["hod", "manager"],
       default: "manager",
+    },
+    department: {
+      type: String,
+      required: function () {
+        return this.role !== "manager";
+      },
+      enum: [
+        "Computer Science",
+        "Electronics",
+        "Mechanical",
+        "Civil",
+        "Chemical",
+      ],
+      default: null,
     },
   },
   {

@@ -17,6 +17,7 @@ interface User {
   fullName: string;
   email: string;
   role: string;
+  department?: string;
 }
 
 interface AuthContextType {
