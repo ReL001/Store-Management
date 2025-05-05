@@ -2,7 +2,8 @@ import axios from "axios";
 import { toast } from "react-toastify";
 
 export const apiClient = axios.create({
-  baseURL: "http://localhost:4000/api", // Match your backend
+  // baseURL: "http://localhost:4000/api", // Match your backend
+  baseURL: "https://store-management-ie0y.onrender.com", // Deployment URL for the backend
   withCredentials: true, // For cookies if using httpOnly tokens
 });
 
