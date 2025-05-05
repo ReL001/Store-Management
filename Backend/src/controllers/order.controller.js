@@ -66,11 +66,17 @@ export const createOrder = async (req, res) => {
       }
     }
 
+    // Calculate total price
+    const totalPrice = items.reduce((sum, item) => {
+      return sum + item.quantity * item.unitPrice;
+    }, 0);
+
     // Create and save order
     const newOrder = new Order({
       ginDetails,
       vendorDetails,
       items,
+      totalPrice,
       createdBy: req.user._id,
     });
 
@@ -165,7 +171,16 @@ export const deleteOrder = async (req, res) => {
 
 export const getRecentOrders = async (req, res) => {
   try {
-    const recentOrders = await Order.find()
+    const user = req.user;
+
+    const filter = {};
+
+    if (user.role === "hod" && user.department) {
+      filter["ginDetails.department"] = user.department;
+      // console.log(`Applying HOD department filter: ${user.department}`);
+    }
+
+    const recentOrders = await Order.find(filter)
       .sort({ createdAt: -1 }) // Most recent first
       .limit(3);
 
@@ -182,11 +197,33 @@ export const getRecentOrders = async (req, res) => {
 
 export const getOrders = async (req, res) => {
   try {
-    // Get optional query parameters for filtering (status, vendor, etc.)
+    // Get optional query parameters for filtering
     const { status, vendor, limit = 10, page = 1 } = req.query;
+    const user = req.user;
 
-    // Create the filter object based on provided query params
+    // Debug: Log the user and their department
+    // console.log("Current user:", {
+    //   _id: user._id,
+    //   role: user.role,
+    //   department: user.department,
+    // });
+
+    // Create the filter object
     const filter = {};
+
+    // [FIXED] Always filter by user's department for HODs
+    if (user.role === "hod" && user.department) {
+      filter["ginDetails.department"] = user.department;
+      // console.log(`Applying HOD department filter: ${user.department}`);
+    }
+
+    // Allow management to optionally filter by department
+    if (user.role === "management" && req.query.department) {
+      filter["ginDetails.department"] = req.query.department;
+      console.log(
+        `Applying management department filter: ${req.query.department}`
+      );
+    }
 
     // Filter by status if provided
     if (status) {
@@ -195,22 +232,23 @@ export const getOrders = async (req, res) => {
 
     // Filter by vendor if provided
     if (vendor) {
-      filter.vendor = vendor;
+      filter["vendorDetails.name"] = vendor;
     }
 
-    // Pagination: Calculate skip value for pagination
+    // Pagination
     const skip = (page - 1) * limit;
 
-    // Fetch the orders with the applied filters and pagination
+    // Debug: Log the final filter
+    console.log("Final query filter:", JSON.stringify(filter, null, 2));
+
+    // Fetch orders
     const orders = await Order.find(filter)
       .skip(skip)
       .limit(Number(limit))
-      .sort({ createdAt: -1 }); // Sort by creation date, most recent first
+      .sort({ createdAt: -1 });
 
-    // Count total orders (for pagination purposes)
     const totalOrders = await Order.countDocuments(filter);
 
-    // Send the response with the orders and total count
     res
       .status(200)
       .json(

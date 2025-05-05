@@ -46,11 +46,11 @@ const storeManagerMenuItems = [
 const hodMenuItems = [
   { text: "Dashboard", icon: <DashboardIcon />, path: "/dashboard" },
   { text: "Requests", icon: <AssignmentIcon />, path: "/requests" },
-  {
-    text: "Approve Requests",
-    icon: <ApproveIcon />,
-    path: "/approve-requests",
-  },
+  // {
+  //   text: "Approve Requests",
+  //   icon: <ApproveIcon />,
+  //   path: "/approve-requests",
+  // },
   { text: "Settings", icon: <SettingsIcon />, path: "/settings" },
 ];
 

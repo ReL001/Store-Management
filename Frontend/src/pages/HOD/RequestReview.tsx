@@ -1,67 +1,108 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
+// ... (keep all your existing imports)
+import { useOrderActions } from "lib/react-query/hooks/useOrderActions"; // Add this import
+import { Order } from "types/order";
+import { useGetOrders } from "lib/react-query/hooks/useGetOrders";
 import {
+  Alert,
   Box,
+  Button,
+  Chip,
+  CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   Paper,
-  Typography,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
+  TablePagination,
   TableRow,
-  Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   TextField,
-  Chip,
-} from '@mui/material';
-import { Check as CheckIcon, Close as CloseIcon, Edit as EditIcon } from '@mui/icons-material';
-import { Request } from '../../types';
+  Typography,
+} from "@mui/material";
+import {
+  Check as CheckIcon,
+  Close as CloseIcon,
+  Edit as EditIcon,
+} from "@mui/icons-material";
+interface OrderItem {
+  name: string;
+  qty: number;
+}
 
 const RequestReview: React.FC = () => {
-  const [requests, setRequests] = useState<Request[]>([
-    {
-      id: '1',
-      productName: 'Laptop',
-      description: 'High-performance laptop for computer lab',
-      quantity: 10,
-      unit: 'pieces',
-      estimatedCost: 50000,
-      status: 'pending',
-      storeManager: 'John Doe',
-      date: '2024-03-15',
-    },
-    // Add more sample requests as needed
-  ]);
-
-  const [selectedRequest, setSelectedRequest] = useState<Request | null>(null);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [openDialog, setOpenDialog] = useState(false);
-  const [comment, setComment] = useState('');
+  const [comment, setComment] = useState("");
 
-  const handleStatusChange = (requestId: string, newStatus: Request['status']) => {
-    setRequests(requests.map(request =>
-      request.id === requestId
-        ? { ...request, status: newStatus, comments: comment }
-        : request
-    ));
-    setOpenDialog(false);
-    setComment('');
+  // State for pagination
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+
+  // Get orders data
+  const { data, isLoading, isError } = useGetOrders();
+  const orders = (data?.orders || []) as Order[];
+  const totalCount: number = data?.totalOrders || 0;
+
+  // Get order actions
+  const {
+    approveOrder,
+    rejectOrder,
+    requestChanges,
+    isLoading: isActionLoading,
+  } = useOrderActions();
+
+  const handleChangePage = (event: unknown, newPage: number) => {
+    setPage(newPage);
   };
 
-  const getStatusColor = (status: Request['status']) => {
+  const handleChangeRowsPerPage = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+  const getStatusColor = (status: string) => {
     switch (status) {
-      case 'approved':
-        return 'success';
-      case 'rejected':
-        return 'error';
-      case 'changes_requested':
-        return 'warning';
+      case "approved":
+        return "success";
+      case "rejected":
+        return "error";
+      case "changes_requested":
+        return "warning";
       default:
-        return 'default';
+        return "default";
     }
   };
+
+  const handleAction = async (
+    action: "approve" | "reject" | "request_changes"
+  ) => {
+    if (!selectedOrder) return;
+
+    try {
+      if (action === "request_changes") {
+        await requestChanges(selectedOrder._id, comment);
+      } else if (action === "approve") {
+        await approveOrder(selectedOrder._id);
+      } else {
+        await rejectOrder(selectedOrder._id);
+      }
+      setOpenDialog(false);
+      setComment("");
+    } catch (error) {
+      console.error("Action failed:", error);
+    }
+  };
+
+  // Loading and error states
+  if (isLoading) return <CircularProgress />;
+  if (isError) return <Alert severity="error">Error loading orders</Alert>;
 
   return (
     <Box>
@@ -69,84 +110,127 @@ const RequestReview: React.FC = () => {
         Request Review
       </Typography>
 
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Date</TableCell>
-              <TableCell>Product</TableCell>
-              <TableCell>Description</TableCell>
-              <TableCell>Quantity</TableCell>
-              <TableCell>Cost</TableCell>
-              <TableCell>Store Manager</TableCell>
-              <TableCell>Status</TableCell>
-              <TableCell>Actions</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {requests.map((request) => (
-              <TableRow key={request.id}>
-                <TableCell>{request.date}</TableCell>
-                <TableCell>{request.productName}</TableCell>
-                <TableCell>{request.description}</TableCell>
-                <TableCell>{request.quantity} {request.unit}</TableCell>
-                <TableCell>₹{request.estimatedCost}</TableCell>
-                <TableCell>{request.storeManager}</TableCell>
-                <TableCell>
-                  <Chip
-                    label={request.status}
-                    color={getStatusColor(request.status)}
-                    size="small"
-                  />
-                </TableCell>
-                <TableCell>
-                  {request.status === 'pending' && (
-                    <>
-                      <Button
-                        startIcon={<CheckIcon />}
-                        color="success"
-                        size="small"
-                        onClick={() => {
-                          setSelectedRequest(request);
-                          setOpenDialog(true);
-                        }}
-                      >
-                        Approve
-                      </Button>
-                      <Button
-                        startIcon={<CloseIcon />}
-                        color="error"
-                        size="small"
-                        onClick={() => {
-                          setSelectedRequest(request);
-                          setOpenDialog(true);
-                        }}
-                      >
-                        Reject
-                      </Button>
-                      <Button
-                        startIcon={<EditIcon />}
-                        color="warning"
-                        size="small"
-                        onClick={() => {
-                          setSelectedRequest(request);
-                          setOpenDialog(true);
-                        }}
-                      >
-                        Request Changes
-                      </Button>
-                    </>
-                  )}
-                </TableCell>
+      <Paper elevation={3} sx={{ p: 2 }}>
+        <TableContainer>
+          <Table>
+            {/* ... (keep your existing TableHead) */}
+            <TableHead>
+              <TableRow>
+                <TableCell>GIN</TableCell>
+                <TableCell>Date</TableCell>
+                <TableCell>Items</TableCell>
+                {/* <TableCell>Department</TableCell> */}
+                {/* <TableCell>Bill No</TableCell> */}
+                {/* <TableCell>Vendor</TableCell> */}
+                <TableCell>Total Items</TableCell>
+                <TableCell>Status</TableCell>
+                <TableCell align="center">Actions</TableCell>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+            </TableHead>
+            <TableBody>
+              {orders
+                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                .map((order) => (
+                  <TableRow key={order._id}>
+                    {/* ... (keep your existing table cells) */}
+                    <TableCell>
+                      {order.ginDetails?.ginNumber || "N/A"}
+                    </TableCell>
+                    <TableCell>
+                      {order.ginDetails?.date
+                        ? new Date(order.ginDetails.date).toLocaleDateString()
+                        : "N/A"}
+                    </TableCell>
+                    <TableCell>
+                      {order.items.map((item, index) => (
+                        <div key={index}>
+                          {item.name} - Qty: {item.quantity}
+                        </div>
+                      ))}
+                    </TableCell>
+
+                    {/* <TableCell> */}
+                    {/* {order.ginDetails?.department || "N/A"} */}
+                    {/* </TableCell> */}
+                    {/* <TableCell> */}
+                    {/* {order.ginDetails?.billNumber || "N/A"} */}
+                    {/* </TableCell> */}
+                    {/* <TableCell>{order.vendorDetails?.name || "N/A"}</TableCell> */}
+                    <TableCell>{`${order.totalPrice} Rs`}</TableCell>
+
+                    <TableCell>
+                      <Chip
+                        label={order.status || "pending"}
+                        color={getStatusColor(order.status)}
+                        size="small"
+                      />
+                    </TableCell>
+                    <TableCell align="center">
+                      {order.status === "pending" && (
+                        <>
+                          <Button
+                            startIcon={<CheckIcon />}
+                            color="success"
+                            size="small"
+                            onClick={() => {
+                              setSelectedOrder(order);
+                              setOpenDialog(true);
+                            }}
+                            sx={{ mx: 0.5 }}
+                            disabled={isActionLoading}
+                          >
+                            Approve
+                          </Button>
+                          <Button
+                            startIcon={<CloseIcon />}
+                            color="error"
+                            size="small"
+                            onClick={() => {
+                              setSelectedOrder(order);
+                              setOpenDialog(true);
+                            }}
+                            sx={{ mx: 0.5 }}
+                            disabled={isActionLoading}
+                          >
+                            Reject
+                          </Button>
+                          <Button
+                            startIcon={<EditIcon />}
+                            color="warning"
+                            size="small"
+                            onClick={() => {
+                              setSelectedOrder(order);
+                              setOpenDialog(true);
+                            }}
+                            sx={{ mx: 0.5 }}
+                            disabled={isActionLoading}
+                          >
+                            Changes
+                          </Button>
+                        </>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+        <TablePagination
+          rowsPerPageOptions={[10, 25, 50]}
+          component="div"
+          count={orders.length}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+        />
+      </Paper>
 
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
         <DialogTitle>
-          {selectedRequest?.status === 'pending' ? 'Review Request' : 'Add Comments'}
+          {selectedOrder?.status === "pending"
+            ? "Review Request"
+            : "Add Comments"}
         </DialogTitle>
         <DialogContent>
           <TextField
@@ -162,32 +246,31 @@ const RequestReview: React.FC = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenDialog(false)}>Cancel</Button>
-          {selectedRequest && (
-            <>
-              <Button
-                color="success"
-                onClick={() => handleStatusChange(selectedRequest.id, 'approved')}
-              >
-                Approve
-              </Button>
-              <Button
-                color="error"
-                onClick={() => handleStatusChange(selectedRequest.id, 'rejected')}
-              >
-                Reject
-              </Button>
-              <Button
-                color="warning"
-                onClick={() => handleStatusChange(selectedRequest.id, 'changes_requested')}
-              >
-                Request Changes
-              </Button>
-            </>
-          )}
+          <Button
+            color="success"
+            onClick={() => handleAction("approve")}
+            disabled={isActionLoading}
+          >
+            Approve
+          </Button>
+          <Button
+            color="error"
+            onClick={() => handleAction("reject")}
+            disabled={isActionLoading}
+          >
+            Reject
+          </Button>
+          <Button
+            color="warning"
+            onClick={() => handleAction("request_changes")}
+            disabled={isActionLoading}
+          >
+            Request Changes
+          </Button>
         </DialogActions>
       </Dialog>
     </Box>
   );
 };
 
-export default RequestReview; 
+export default RequestReview;

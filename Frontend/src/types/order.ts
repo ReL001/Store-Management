@@ -25,6 +25,7 @@ export interface Order {
   ginDetails: GinDetails;
   vendorDetails: VendorDetails;
   items: OrderItem[];
+  totalPrice: Number;
   status: "pending" | "approved" | "rejected";
   createdAt: string;
   updatedAt: string;
