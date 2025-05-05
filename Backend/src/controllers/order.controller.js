@@ -92,10 +92,10 @@ export const createOrder = async (req, res) => {
 };
 
 export const updateOrder = async (req, res) => {
-  console.log("upading");
+  // console.log("upading");
   try {
     const { id } = req.params;
-    console.log(id);
+    // console.log(id);
 
     // Get order details from the request body
     const { items, vendor } = req.body;
@@ -189,7 +189,7 @@ export const getRecentOrders = async (req, res) => {
       .sort({ createdAt: -1 }) // Most recent first
       .limit(3);
 
-    console.log(recentOrders);
+    // console.log(recentOrders);
 
     res
       .status(200)
@@ -227,9 +227,10 @@ export const getOrders = async (req, res) => {
     // Allow management to optionally filter by department
     if (user.role === "management" && req.query.department) {
       filter["ginDetails.department"] = req.query.department;
-      console.log(
-        `Applying management department filter: ${req.query.department}`
-      );
+      // console
+      //   .log
+      //   `Applying management department filter: ${req.query.department}`
+      //   ();
     }
 
     // Filter by status if provided
