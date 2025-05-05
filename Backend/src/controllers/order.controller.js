@@ -181,8 +181,11 @@ export const getRecentOrders = async (req, res) => {
     }
 
     const recentOrders = await Order.find(filter)
+      .populate("createdBy", "username email")
       .sort({ createdAt: -1 }) // Most recent first
       .limit(3);
+
+    console.log(recentOrders);
 
     res
       .status(200)
@@ -243,6 +246,7 @@ export const getOrders = async (req, res) => {
 
     // Fetch orders
     const orders = await Order.find(filter)
+      .populate("createdBy", "name")
       .skip(skip)
       .limit(Number(limit))
       .sort({ createdAt: -1 });

@@ -20,6 +20,14 @@ export interface OrderItem {
   unitPrice: number;
 }
 
+export type UserReference =
+  | string
+  | {
+      _id: string;
+      username: string;
+      email: string;
+    };
+
 export interface Order {
   _id: string;
   ginDetails: GinDetails;
@@ -29,7 +37,7 @@ export interface Order {
   status: "pending" | "approved" | "rejected";
   createdAt: string;
   updatedAt: string;
-  createdBy?: string; // Added createdBy property as optional
+  createdBy?: UserReference | string; // Added createdBy property as optional
 }
 
 export interface OrdersData {

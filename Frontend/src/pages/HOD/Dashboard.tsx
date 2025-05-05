@@ -208,7 +208,10 @@ const Dashboard: React.FC = () => {
                               ` (+${order.items.length - 1} more)`}
                           </Typography>
                           <Typography variant="body2" color="text.secondary">
-                            Requested by: {order.createdBy || "Unknown"}
+                            Requested by:{" "}
+                            {(typeof order.createdBy === "object" &&
+                              order.createdBy?.username) ||
+                              "Unknown"}
                           </Typography>
                         </Box>
                       </Box>
