@@ -27,19 +27,37 @@ interface ApiResponse<T> {
 }
 
 // Get all vendors
-const fetchVendors = async (search?: string): Promise<VendorsData> => {
+const fetchVendors = async (
+  searchTerm?: string,
+  page?: number,
+  limit?: number
+): Promise<VendorsData> => {
   try {
-    const url = search 
-      ? `http://localhost:4000/api/vendors?search=${search}`
-      : `http://localhost:4000/api/vendors`;
-      
-    const response = await fetch(url, {
+    // Create URL with all parameters
+    const url = new URL("http://localhost:4000/api/vendors");
+
+    // Add search term if provided
+    if (searchTerm) {
+      url.searchParams.append("search", searchTerm);
+    }
+
+    // Add pagination parameters
+    if (page !== undefined) {
+      url.searchParams.append("page", page.toString());
+    }
+
+    if (limit !== undefined) {
+      url.searchParams.append("limit", limit.toString());
+    }
+
+    const response = await fetch(url.toString(), {
       method: "GET",
       credentials: "include",
     });
 
     if (!response.ok) {
-      throw new Error("Failed to fetch vendors");
+      const errorData = await response.json();
+      throw new Error(errorData.message || "Failed to fetch vendors");
     }
 
     const result: ApiResponse<VendorsData> = await response.json();
@@ -49,11 +67,14 @@ const fetchVendors = async (search?: string): Promise<VendorsData> => {
     return { vendors: [], totalVendors: 0 };
   }
 };
-
-export const useVendorsQuery = (search?: string) => {
+export const useVendorsQuery = (
+  searchTerm?: string,
+  page?: number,
+  limit?: number
+) => {
   return useQuery({
-    queryKey: ["vendors", search],
-    queryFn: () => fetchVendors(search),
+    queryKey: ["vendors", searchTerm, page, limit],
+    queryFn: () => fetchVendors(searchTerm, page, limit),
     staleTime: 60000, // 1 minute
   });
 };
@@ -61,7 +82,7 @@ export const useVendorsQuery = (search?: string) => {
 // Get vendor by ID
 const fetchVendorById = async (id: string): Promise<Vendor | null> => {
   if (!id) return null;
-  
+
   try {
     const response = await fetch(`http://localhost:4000/api/vendors/${id}`, {
       method: "GET",
@@ -91,9 +112,14 @@ export const useVendorByIdQuery = (id: string) => {
 // Create vendor
 export const useCreateVendorMutation = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: async (vendorData: Omit<Vendor, "_id" | "createdAt" | "updatedAt" | "previousOrders">) => {
+    mutationFn: async (
+      vendorData: Omit<
+        Vendor,
+        "_id" | "createdAt" | "updatedAt" | "previousOrders"
+      >
+    ) => {
       const response = await fetch("http://localhost:4000/api/vendors/create", {
         method: "POST",
         headers: {
@@ -120,14 +146,16 @@ export const useCreateVendorMutation = () => {
 // Update vendor
 export const useUpdateVendorMutation = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: async ({ 
-      id, 
-      vendorData 
-    }: { 
-      id: string; 
-      vendorData: Partial<Omit<Vendor, "_id" | "createdAt" | "updatedAt" | "previousOrders">> 
+    mutationFn: async ({
+      id,
+      vendorData,
+    }: {
+      id: string;
+      vendorData: Partial<
+        Omit<Vendor, "_id" | "createdAt" | "updatedAt" | "previousOrders">
+      >;
     }) => {
       const response = await fetch(`http://localhost:4000/api/vendors/${id}`, {
         method: "PUT",
@@ -156,7 +184,7 @@ export const useUpdateVendorMutation = () => {
 // Delete vendor
 export const useDeleteVendorMutation = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async (id: string) => {
       const response = await fetch(`http://localhost:4000/api/vendors/${id}`, {

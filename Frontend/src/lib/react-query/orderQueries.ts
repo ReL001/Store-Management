@@ -114,15 +114,32 @@ export const useRecentOrdersQuery = (): UseQueryResult<Order[], Error> => {
   });
 };
 
-const fetchOrders = async (status?: string): Promise<OrdersData> => {
+const fetchOrders = async (
+  status?: string,
+  page?: number,
+  limit?: number
+): Promise<OrdersData> => {
   try {
-    const url = status
-      ? `http://localhost:4000/api/orders?status=${status}`
-      : `http://localhost:4000/api/orders`;
+    // Create URL with query parameters
+    const url = new URL("http://localhost:4000/api/orders");
 
-    // console.log("Making request to:", url); // Debug 1: URL verification
+    // Add status filter if provided
+    if (status) {
+      url.searchParams.append("status", status);
+    }
 
-    const response = await fetch(url, {
+    // Add pagination parameters
+    if (page !== undefined) {
+      url.searchParams.append("page", page.toString());
+    }
+
+    if (limit !== undefined) {
+      url.searchParams.append("limit", limit.toString());
+    }
+
+    // console.log("Making request to:", url.toString()); // Debug: URL verification
+
+    const response = await fetch(url.toString(), {
       method: "GET",
       credentials: "include",
     });
@@ -133,8 +150,7 @@ const fetchOrders = async (status?: string): Promise<OrdersData> => {
     }
 
     const result: ApiResponse = await response.json();
-    // console.log("Raw API response:", result); // Debug 2: Raw response
-    // return validateOrdersResponse(result.data);
+    // console.log("API response:", result); // Debug: Raw response
     return result.data;
   } catch (error) {
     console.error("Fetch error:", error);
@@ -143,11 +159,13 @@ const fetchOrders = async (status?: string): Promise<OrdersData> => {
 };
 
 export const useGetOrdersQuery = (
-  status?: string
+  status?: string,
+  page?: number,
+  limit?: number
 ): UseQueryResult<OrdersData, Error> => {
   return useQuery({
-    queryKey: ["orders", status],
-    queryFn: () => fetchOrders(status),
+    queryKey: ["orders", status, page, limit],
+    queryFn: () => fetchOrders(status, page, limit),
     staleTime: 60000,
     refetchOnMount: true,
   });

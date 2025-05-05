@@ -124,7 +124,7 @@ const OrderManagement: React.FC = () => {
     data: totalOrders,
     isLoading: loadingTotal,
     isError: errorTotal,
-  } = useGetOrders();
+  } = useGetOrders(undefined, page + 1, rowsPerPage);
 
   // const orders: Order[] = totalOrders?.orders || [];
   const orders = (totalOrders?.orders || []) as Order[]; // Force type assertion
@@ -170,7 +170,7 @@ const OrderManagement: React.FC = () => {
     // Just close the dialog and show success message
     handleCloseDialog();
     toast.success("Order created successfully");
-    
+
     // Refresh the orders data
     setTimeout(() => {
       queryClient.invalidateQueries({ queryKey: ["orders"] });
@@ -416,7 +416,7 @@ const OrderManagement: React.FC = () => {
                 </TableHead>
                 <TableBody>
                   {orders
-                    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                    // .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                     .map((order) => (
                       <TableRow key={order._id}>
                         <TableCell>

@@ -36,10 +36,11 @@ import {
 import { motion } from "framer-motion";
 import VendorForm from "./VendorForm";
 import { useVendors } from "../../lib/react-query/hooks/useVendors";
-import { 
-  Vendor, 
-  useDeleteVendorMutation 
+import {
+  Vendor,
+  useDeleteVendorMutation,
 } from "../../lib/react-query/vendorQueries";
+import TablePagination from "@mui/material/TablePagination";
 
 const MotionPaper = motion(Paper);
 const MotionCard = motion(Card);
@@ -49,16 +50,30 @@ const VendorManagement: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(null);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
-  
+
+  const [page, setPage] = useState(0); // MUI uses 0-based index
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+
   // Fetch vendors using our custom hook
-  const { 
-    data: vendorsData, 
-    isLoading, 
-    isError, 
+  const {
+    data: vendorsData,
+    isLoading,
+    isError,
     error,
-    refetch 
-  } = useVendors(searchTerm);
-  
+    refetch,
+  } = useVendors(searchTerm, page + 1, rowsPerPage); // page + 1 converts to 1-based index
+
+  const handleChangePage = (event: unknown, newPage: number) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0); // Reset to first page when changing page size
+  };
+
   // Delete vendor mutation
   const deleteVendorMutation = useDeleteVendorMutation();
 
@@ -86,7 +101,7 @@ const VendorManagement: React.FC = () => {
         onSuccess: () => {
           setDeleteConfirmOpen(false);
           refetch();
-        }
+        },
       });
     }
   };
@@ -98,7 +113,14 @@ const VendorManagement: React.FC = () => {
 
   return (
     <Box sx={{ p: 3 }}>
-      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 3,
+        }}
+      >
         <Typography variant="h4" sx={{ fontWeight: "bold" }}>
           Vendor Management
         </Typography>
@@ -197,57 +219,69 @@ const VendorManagement: React.FC = () => {
             transition={{ duration: 0.5, delay: 0.4 }}
           >
             {isLoading ? (
-              <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+              <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
                 <CircularProgress />
               </Box>
             ) : isError ? (
               <Alert severity="error">
-                Error loading vendors: {error instanceof Error ? error.message : "Unknown error"}
+                Error loading vendors:{" "}
+                {error instanceof Error ? error.message : "Unknown error"}
               </Alert>
             ) : vendorsData && vendorsData.vendors.length > 0 ? (
-              <TableContainer>
-                <Table>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Name</TableCell>
-                      <TableCell>Email</TableCell>
-                      <TableCell>Phone</TableCell>
-                      <TableCell>Address</TableCell>
-                      <TableCell>GSTIN</TableCell>
-                      <TableCell>Actions</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {vendorsData.vendors.map((vendor) => (
-                      <TableRow key={vendor._id} hover>
-                        <TableCell>{vendor.name}</TableCell>
-                        <TableCell>{vendor.email}</TableCell>
-                        <TableCell>{vendor.phone}</TableCell>
-                        <TableCell>{vendor.address}</TableCell>
-                        <TableCell>{vendor.gstin || "N/A"}</TableCell>
-                        <TableCell>
-                          <IconButton 
-                            color="primary" 
-                            onClick={() => handleOpenDialog(vendor)}
-                            size="small"
-                          >
-                            <EditIcon />
-                          </IconButton>
-                          <IconButton 
-                            color="error" 
-                            onClick={() => handleDeleteClick(vendor)} 
-                            size="small"
-                          >
-                            <DeleteIcon />
-                          </IconButton>
-                        </TableCell>
+              <Paper>
+                <TableContainer>
+                  <Table>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Name</TableCell>
+                        <TableCell>Email</TableCell>
+                        <TableCell>Phone</TableCell>
+                        <TableCell>Address</TableCell>
+                        <TableCell>GSTIN</TableCell>
+                        <TableCell>Actions</TableCell>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
+                    </TableHead>
+                    <TableBody>
+                      {vendorsData.vendors.map((vendor) => (
+                        <TableRow key={vendor._id} hover>
+                          <TableCell>{vendor.name}</TableCell>
+                          <TableCell>{vendor.email}</TableCell>
+                          <TableCell>{vendor.phone}</TableCell>
+                          <TableCell>{vendor.address}</TableCell>
+                          <TableCell>{vendor.gstin || "N/A"}</TableCell>
+                          <TableCell>
+                            <IconButton
+                              color="primary"
+                              onClick={() => handleOpenDialog(vendor)}
+                              size="small"
+                            >
+                              <EditIcon />
+                            </IconButton>
+                            <IconButton
+                              color="error"
+                              onClick={() => handleDeleteClick(vendor)}
+                              size="small"
+                            >
+                              <DeleteIcon />
+                            </IconButton>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+                <TablePagination
+                  rowsPerPageOptions={[5, 10, 25]}
+                  component="div"
+                  count={vendorsData?.totalVendors || 0}
+                  rowsPerPage={rowsPerPage}
+                  page={page}
+                  onPageChange={handleChangePage}
+                  onRowsPerPageChange={handleChangeRowsPerPage}
+                />
+              </Paper>
             ) : (
-              <Box sx={{ p: 4, textAlign: 'center' }}>
+              <Box sx={{ p: 4, textAlign: "center" }}>
                 <Typography variant="h6" color="textSecondary">
                   No vendors found. Add your first vendor.
                 </Typography>
@@ -268,7 +302,7 @@ const VendorManagement: React.FC = () => {
           {selectedVendor ? "Edit Vendor" : "Add New Vendor"}
         </DialogTitle>
         <DialogContent>
-          <VendorForm 
+          <VendorForm
             vendor={selectedVendor}
             onSubmitSuccess={handleCloseDialog}
           />
@@ -280,17 +314,25 @@ const VendorManagement: React.FC = () => {
         <DialogTitle>Confirm Delete</DialogTitle>
         <DialogContent>
           <Typography>
-            Are you sure you want to delete vendor: {selectedVendor?.name}?
-            This action cannot be undone.
+            Are you sure you want to delete vendor: {selectedVendor?.name}? This
+            action cannot be undone.
           </Typography>
         </DialogContent>
-        <Box sx={{ display: 'flex', px: 2, pb: 2, justifyContent: 'flex-end', gap: 1 }}>
+        <Box
+          sx={{
+            display: "flex",
+            px: 2,
+            pb: 2,
+            justifyContent: "flex-end",
+            gap: 1,
+          }}
+        >
           <Button onClick={handleCancelDelete} color="primary">
             Cancel
           </Button>
-          <Button 
-            onClick={handleConfirmDelete} 
-            color="error" 
+          <Button
+            onClick={handleConfirmDelete}
+            color="error"
             variant="contained"
             disabled={deleteVendorMutation.isPending}
           >
