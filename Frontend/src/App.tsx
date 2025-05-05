@@ -12,11 +12,13 @@ import DashboardLayout from "./components/Layout/DashboardLayout";
 import Login from "./pages/Auth/Login";
 import ManagerDashboard from "./pages/StoreManager/Dashboard";
 import HodDashboard from "./pages/HOD/Dashboard";
-import ProductManagement from "./pages/StoreManager/ProductManagement";
 import VendorManagement from "./pages/StoreManager/VendorManagement";
 import RequestReview from "./pages/HOD/RequestReview";
 import ApproveRequests from "./pages/HOD/ApproveRequests";
 import { AuthProvider } from "contexts/AuthContext";
+import OrderManagement from "./pages/StoreManager/OrderManagement";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css"; // <-- Required for styling
 
 // MUI Theme
 const theme = createTheme({
@@ -75,71 +77,82 @@ const App: React.FC = () => {
     <AuthProvider>
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <Router>
-          <Routes>
-            {/* Public Route */}
-            <Route path="/login" element={<Login />} />
+        <Routes>
+          {/* Public Route */}
+          <Route path="/login" element={<Login />} />
 
-            {/* Protected Routes */}
-            <Route
-              path="/dashboard"
-              element={
-                <PrivateRoute allowedRoles={["manager", "hod"]}>
-                  <DashboardLayout>
-                    <DashboardPage />
-                  </DashboardLayout>
-                </PrivateRoute>
-              }
-            />
+          {/* Protected Routes */}
+          <Route
+            path="/dashboard"
+            element={
+              <PrivateRoute allowedRoles={["manager", "hod"]}>
+                <DashboardLayout>
+                  <DashboardPage />
+                </DashboardLayout>
+              </PrivateRoute>
+            }
+          />
 
-            <Route
-              path="/products"
-              element={
-                <PrivateRoute allowedRoles={["manager"]}>
-                  <DashboardLayout>
-                    <ProductManagement />
-                  </DashboardLayout>
-                </PrivateRoute>
-              }
-            />
+          <Route
+            path="/orders"
+            element={
+              <PrivateRoute allowedRoles={["manager"]}>
+                <DashboardLayout>
+                  <OrderManagement />
+                </DashboardLayout>
+              </PrivateRoute>
+            }
+          />
 
-            <Route
-              path="/vendors"
-              element={
-                <PrivateRoute allowedRoles={["manager"]}>
-                  <DashboardLayout>
-                    <VendorManagement />
-                  </DashboardLayout>
-                </PrivateRoute>
-              }
-            />
+          <Route
+            path="/vendors"
+            element={
+              <PrivateRoute allowedRoles={["manager"]}>
+                <DashboardLayout>
+                  <VendorManagement />
+                </DashboardLayout>
+              </PrivateRoute>
+            }
+          />
 
-            <Route
-              path="/requests"
-              element={
-                <PrivateRoute allowedRoles={["hod"]}>
-                  <DashboardLayout>
-                    <RequestReview />
-                  </DashboardLayout>
-                </PrivateRoute>
-              }
-            />
+          <Route
+            path="/requests"
+            element={
+              <PrivateRoute allowedRoles={["hod"]}>
+                <DashboardLayout>
+                  <RequestReview />
+                </DashboardLayout>
+              </PrivateRoute>
+            }
+          />
 
-            <Route
-              path="/approve-requests"
-              element={
-                <PrivateRoute allowedRoles={["hod"]}>
-                  <DashboardLayout>
-                    <ApproveRequests />
-                  </DashboardLayout>
-                </PrivateRoute>
-              }
-            />
+          <Route
+            path="/approve-requests"
+            element={
+              <PrivateRoute allowedRoles={["hod"]}>
+                <DashboardLayout>
+                  <ApproveRequests />
+                </DashboardLayout>
+              </PrivateRoute>
+            }
+          />
 
-            {/* Redirect unknown routes to dashboard */}
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
-          </Routes>
-        </Router>
+          {/* Redirect unknown routes to dashboard */}
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        </Routes>
+        {/* Add this at the root level - only once in your app */}
+        <ToastContainer
+          position="top-right"
+          autoClose={5000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="colored"
+        />
       </ThemeProvider>
     </AuthProvider>
   );

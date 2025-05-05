@@ -4,35 +4,33 @@ import mongoose from "mongoose";
 
 const orderSchema = new mongoose.Schema(
   {
+    // GIN (Goods Issue Note) Details
+    ginDetails: {
+      ginNumber: { type: String, required: true, trim: true },
+      date: { type: Date, required: true }, // Store as Date for easier querying
+      department: { type: String, required: true, trim: true },
+      billNumber: { type: String, required: true, trim: true },
+    },
+
+    // Vendor Details (nested object)
+    vendorDetails: {
+      name: { type: String, required: true, trim: true }, // Existing 'vendor' field upgraded
+      contactNumber: { type: String, required: true, trim: true },
+      gstin: { type: String, required: true, trim: true }, // GSTIN is alphanumeric (e.g., "22ABCDE1234F1Z5")
+      address: { type: String, required: true, trim: true },
+    },
+
+    // Items Array (enhanced with unit details)
     items: [
       {
-        name: {
-          type: String,
-          required: true,
-          trim: true,
-        },
-        description: {
-          type: String,
-          trim: true,
-          default: "",
-        },
-        quantity: {
-          type: Number,
-          required: true,
-          min: 1,
-        },
-        price: {
-          type: Number,
-          required: true,
-          min: 0,
-        },
+        name: { type: String, required: true, trim: true },
+        description: { type: String, trim: true, default: "" },
+        quantity: { type: Number, required: true, min: 1 },
+        unitPrice: { type: Number, required: true, min: 0 }, // Renamed from 'price' for clarity
       },
     ],
-    vendor: {
-      type: String,
-      // required: true,
-      trim: true,
-    },
+
+    // Approval Metadata (unchanged)
     status: {
       type: String,
       enum: ["pending", "approved", "rejected"],
@@ -49,9 +47,7 @@ const orderSchema = new mongoose.Schema(
       default: null,
     },
   },
-  {
-    timestamps: true, // Automatically manages createdAt & updatedAt
-  }
+  { timestamps: true }
 );
 
 orderSchema.pre("save", function (next) {

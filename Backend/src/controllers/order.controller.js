@@ -4,46 +4,84 @@ import { ApiError } from "../utils/ApiError.js";
 
 export const createOrder = async (req, res) => {
   try {
-    // Get order details from the request body
-    const { items, vendor } = req.body;
+    const { ginDetails, vendorDetails, items } = req.body;
 
-    // Validate that items are provided
-    if (!items || !Array.isArray(items) || items.length === 0) {
-      throw new ApiError(400, "Order must include at least one item");
+    // Validate GIN details
+    if (
+      !ginDetails?.ginNumber ||
+      !ginDetails?.date ||
+      !ginDetails?.department ||
+      !ginDetails?.billNumber
+    ) {
+      return res
+        .status(400)
+        .json(
+          new ApiError(
+            400,
+            "GIN details (number, date, department, bill number) are required"
+          )
+        );
     }
 
-    // Validate that each item has required fields
-    for (let item of items) {
+    // Validate vendor details
+    if (
+      !vendorDetails?.name ||
+      !vendorDetails?.contactNumber ||
+      !vendorDetails?.gstin ||
+      !vendorDetails?.address
+    ) {
+      return res
+        .status(400)
+        .json(
+          new ApiError(
+            400,
+            "Vendor details (name, number, contact, GSTIN, address) are required"
+          )
+        );
+    }
+
+    // Validate items
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      return res
+        .status(400)
+        .json(new ApiError(400, "Order must include at least one item"));
+    }
+
+    for (const item of items) {
       if (
         !item.name ||
         !item.quantity ||
         item.quantity < 1 ||
-        !item.price ||
-        item.price < 0
+        !item.unitPrice ||
+        item.unitPrice < 0
       ) {
-        throw new ApiError(
-          400,
-          "Each item must have a name, valid quantity, and valid price"
-        );
+        return res
+          .status(400)
+          .json(
+            new ApiError(
+              400,
+              "Each item must have a name, valid quantity, and valid unitPrice"
+            )
+          );
       }
     }
 
-    // Create a new order
+    // Create and save order
     const newOrder = new Order({
+      ginDetails,
+      vendorDetails,
       items,
-      vendor,
       createdBy: req.user._id,
     });
 
-    // Save the order to the database
     const savedOrder = await newOrder.save();
 
-    res
+    return res
       .status(201)
       .json(new ApiResponse(201, savedOrder, "Order created successfully"));
   } catch (error) {
     console.error("Error creating order:", error);
-    throw new ApiError(500, "Internal server error");
+    return res.status(500).json(new ApiError(500, "Internal server error"));
   }
 };
 

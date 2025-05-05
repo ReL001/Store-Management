@@ -1,5 +1,7 @@
 // src/react-query/orderQueries.ts
-import { useQuery, UseQueryResult } from "@tanstack/react-query";
+import { useQuery, UseQueryResult, useMutation, UseMutationResult, useQueryClient } from "@tanstack/react-query";
+import { Order, OrdersData } from "types/order";
+import { queryClient } from "./queryClient"; // Import your existing instance
 
 interface OrderItem {
   name: string;
@@ -7,22 +9,6 @@ interface OrderItem {
   quantity: number;
   price?: number;
   _id: string;
-}
-
-export interface Order {
-  _id: string;
-  items: OrderItem[];
-  status: string;
-  createdBy: string;
-  approvedBy: string | null;
-  createdAt: string;
-  updatedAt: string;
-  __v: number;
-}
-
-interface OrdersData {
-  orders: Order[];
-  totalOrders: number;
 }
 
 interface ApiResponse {
@@ -38,6 +24,27 @@ interface RecentOrdersResponse {
   data: Order[]; // Direct array of orders
   message: string;
   success: boolean;
+}
+
+interface CreateOrderPayload {
+  ginDetails: {
+    ginNumber: string;
+    date: string | Date;
+    department: string;
+    billNumber: string;
+  };
+  vendorDetails: {
+    name: string;
+    contactNumber: string;
+    gstin: string;
+    address: string;
+  };
+  items: Array<{
+    name: string;
+    description?: string;
+    quantity: number;
+    unitPrice: number;
+  }>;
 }
 
 function validateOrdersResponse(response: unknown): OrdersData {
@@ -136,5 +143,90 @@ export const useGetOrdersQuery = (
     queryFn: () => fetchOrders(status),
     staleTime: 60000,
     refetchOnMount: true,
+  });
+};
+
+const createOrder = async (orderData: CreateOrderPayload): Promise<Order> => {
+  const response = await fetch("http://localhost:4000/api/orders/create", {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(orderData),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || "Failed to create order");
+  }
+
+  return await response.json();
+};
+
+export const useCreateOrderMutation = (): UseMutationResult<
+  Order,
+  Error,
+  CreateOrderPayload
+> => {
+  const queryClient = useQueryClient(); // Use hook to access the client
+
+  return useMutation({
+    mutationFn: createOrder, // Your existing createOrder function
+    onMutate: async (newOrder) => {
+      // Cancel ongoing orders queries
+      await queryClient.cancelQueries({ queryKey: ["orders"] });
+
+      // Snapshot previous data
+      const previousOrders = queryClient.getQueryData<OrdersData>(["orders"]);
+
+      // Optimistically update cache
+      if (previousOrders) {
+        queryClient.setQueryData(["orders"], {
+          ...previousOrders,
+          orders: [newOrder as any, ...previousOrders.orders], // Temporary cast
+          totalOrders: previousOrders.totalOrders + 1,
+        });
+      }
+
+      return { previousOrders };
+    },
+    onError: (err, _, context) => {
+      // Rollback on error
+      if (context?.previousOrders) {
+        queryClient.setQueryData(["orders"], context.previousOrders);
+      }
+    },
+    onSettled: () => {
+      // Invalidate all orders queries to refetch
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
+    },
+  });
+};
+
+const deleteOrder = async (orderId: string) => {
+  const response = await fetch(
+    `http://localhost:4000/api/orders/delete/${orderId}`,
+    {
+      method: "DELETE",
+      credentials: "include",
+    }
+  );
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || "Failed to delete order");
+  }
+
+  return response.json();
+};
+
+export const useDeleteOrderMutation = () => {
+  return useMutation<string, Error, string>({
+    mutationFn: deleteOrder,
+    onSuccess: () => {
+      // Invalidate the orders query to refresh the list
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
+    },
   });
 };
