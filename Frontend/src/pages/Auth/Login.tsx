@@ -14,6 +14,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { motion } from "framer-motion";
 import { useLogin } from "../../lib/react-query/hooks/useLogin"; // <-- make sure this path is correct
+import { User } from "types";
 
 const MotionPaper = motion(Paper);
 
@@ -21,6 +22,11 @@ interface LoginFormValues {
   email: string;
   password: string;
 }
+
+type LoginResponse = {
+  user: User;
+  accessToken: string;
+};
 
 const validationSchema = Yup.object({
   email: Yup.string()
@@ -52,11 +58,9 @@ const Login: React.FC = () => {
     },
     validationSchema,
     onSubmit: async (values: LoginFormValues) => {
-      setError(null); // Clear any previous errors
+      setError(null);
       mutate(values, {
-        onSuccess: (response) => {
-          login(response.user, response.accessToken);
-          console.log("success");
+        onSuccess: () => {
           navigate("/dashboard");
         },
         onError: (err: any) => {
