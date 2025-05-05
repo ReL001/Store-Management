@@ -2,15 +2,20 @@ import mongoose, { Schema } from "mongoose";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
+export const departmentEnum = [
+  "Computer Science",
+  "Electronics",
+  "Mechanical",
+  "Civil",
+  "Biotech",
+];
+
 const userSchema = new Schema(
   {
-    username: {
+    fullName: {
       type: String,
       required: true,
-      unique: true,
-      lowercase: true,
       trim: true,
-      index: true,
     },
     email: {
       type: String,
@@ -19,11 +24,7 @@ const userSchema = new Schema(
       lowercase: true,
       trim: true,
     },
-    fullName: {
-      type: String,
-      required: true,
-      trim: true,
-    },
+
     avatar: {
       type: String, //cloudnery url
       required: false,
@@ -39,21 +40,14 @@ const userSchema = new Schema(
       type: String,
       required: true,
       enum: ["hod", "manager"],
-      default: "manager",
+      // default: "manager",
     },
     department: {
       type: String,
       required: function () {
         return this.role !== "manager";
       },
-      enum: [
-        "Computer Science",
-        "Electronics",
-        "Mechanical",
-        "Civil",
-        "Chemical",
-      ],
-      default: null,
+      enum: departmentEnum,
     },
   },
   {

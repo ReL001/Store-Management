@@ -1,7 +1,7 @@
 import asyncHandler from "express-async-handler";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
-import { User } from "../models/user.model.js";
+import { departmentEnum, User } from "../models/user.model.js";
 import jwt from "jsonwebtoken";
 
 const generateAccessAndRefreshTokens = async (userId) => {
@@ -20,36 +20,43 @@ const generateAccessAndRefreshTokens = async (userId) => {
 };
 
 export const registerUser = asyncHandler(async (req, res) => {
-  const { username, email, fullName, password, role } = req.body;
-  // Check for empty fields
-  if (
-    [username, email, fullName, password].some((field) => field?.trim() === "")
-  ) {
-    console.log("empty fields");
+  const { email, fullName, password, role, department } = req.body;
+  console.log(req.body);
+
+  // Check for empty required fields
+  if ([email, fullName, password, role].some((field) => !field?.trim())) {
     throw new ApiError(400, "All fields are required");
+  }
+
+  if (role !== "manager") {
+    if (!department) {
+      throw new ApiError(400, "Department is required for HOD users");
+    }
+    if (!departmentEnum.includes(department)) {
+      throw new ApiError(400, {
+        message: "Invalid department",
+        validDepartments: departmentEnum,
+      });
+    }
   }
 
   // Check for existing users
   const existingUser = await User.findOne({
-    $or: [{ username }, { email }],
+    email,
   });
   if (existingUser) {
-    throw new ApiError(
-      409,
-      existingUser.username === username
-        ? "Username already exists"
-        : "Email already exists"
-    );
+    throw new ApiError(409, "Email already exists");
   }
 
   //Create user
-  const user = await User.create({
-    username: username.toLowerCase(),
+  const userData = {
     email,
     fullName,
     password,
     role,
-  });
+    ...(role !== "manager" && { department }),
+  };
+  const user = await User.create(userData);
 
   const createdUser = await User.findById(user._id).select(
     "-password -refreshToken"
@@ -65,11 +72,11 @@ export const registerUser = asyncHandler(async (req, res) => {
 
 export const loginUser = asyncHandler(async (req, res) => {
   //Get data from user
-  const { username, email, password } = req.body;
+  const { email, password } = req.body;
 
   //Validate data
-  if (!username && !email) {
-    return res.status(400).json({ message: "Username or email is required" });
+  if (!email) {
+    return res.status(400).json({ message: "Email is required" });
   }
   if (!password) {
     return res.status(400).json({ message: "Password is required" });
@@ -77,7 +84,7 @@ export const loginUser = asyncHandler(async (req, res) => {
 
   //Authentication
   const user = await User.findOne({
-    $or: [{ username }, { email }],
+    email,
   });
 
   if (!user) {

@@ -24,7 +24,7 @@ export type UserReference =
   | string
   | {
       _id: string;
-      username: string;
+      fullName: string;
       email: string;
     };
 

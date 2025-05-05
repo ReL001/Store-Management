@@ -1,5 +1,11 @@
 // src/react-query/orderQueries.ts
-import { useQuery, UseQueryResult, useMutation, UseMutationResult, useQueryClient } from "@tanstack/react-query";
+import {
+  useQuery,
+  UseQueryResult,
+  useMutation,
+  UseMutationResult,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { Order, OrdersData } from "types/order";
 import { queryClient } from "./queryClient"; // Import your existing instance
 
@@ -93,6 +99,7 @@ const fetchRecentOrders = async (): Promise<Order[]> => {
     const result: RecentOrdersResponse = await response.json();
 
     // Recent orders endpoint returns array directly in data property
+    console.log(result.data);
     return Array.isArray(result.data) ? result.data : [];
   } catch (error) {
     console.error("Fetch error:", error);
@@ -113,7 +120,7 @@ const fetchOrders = async (status?: string): Promise<OrdersData> => {
       ? `http://localhost:4000/api/orders?status=${status}`
       : `http://localhost:4000/api/orders`;
 
-    console.log("Making request to:", url); // Debug 1: URL verification
+    // console.log("Making request to:", url); // Debug 1: URL verification
 
     const response = await fetch(url, {
       method: "GET",
@@ -126,7 +133,7 @@ const fetchOrders = async (status?: string): Promise<OrdersData> => {
     }
 
     const result: ApiResponse = await response.json();
-    console.log("Raw API response:", result); // Debug 2: Raw response
+    // console.log("Raw API response:", result); // Debug 2: Raw response
     // return validateOrdersResponse(result.data);
     return result.data;
   } catch (error) {

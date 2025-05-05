@@ -8,7 +8,19 @@ const orderSchema = new mongoose.Schema(
     ginDetails: {
       ginNumber: { type: String, required: true, trim: true },
       date: { type: Date, required: true }, // Store as Date for easier querying
-      department: { type: String, required: true, trim: true },
+      department: {
+        type: String,
+        required: true,
+        trim: true,
+        enum: [
+          "Computer Science",
+          "Electronics",
+          "Mechanical",
+          "Civil",
+          "Biotech",
+        ],
+      },
+
       billNumber: { type: String, required: true, trim: true },
     },
 

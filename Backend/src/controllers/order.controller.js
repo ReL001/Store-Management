@@ -181,7 +181,11 @@ export const getRecentOrders = async (req, res) => {
     }
 
     const recentOrders = await Order.find(filter)
-      .populate("createdBy", "username email")
+      .populate({
+        path: "createdBy",
+        select: "fullName",
+        model: "User",
+      })
       .sort({ createdAt: -1 }) // Most recent first
       .limit(3);
 
@@ -242,11 +246,15 @@ export const getOrders = async (req, res) => {
     const skip = (page - 1) * limit;
 
     // Debug: Log the final filter
-    console.log("Final query filter:", JSON.stringify(filter, null, 2));
+    // console.log("Final query filter:", JSON.stringify(filter, null, 2));
 
     // Fetch orders
     const orders = await Order.find(filter)
-      .populate("createdBy", "name")
+      .populate({
+        path: "createdBy",
+        select: "fullName email", // Ensure these match User schema
+        model: "User", // Explicitly declare model
+      })
       .skip(skip)
       .limit(Number(limit))
       .sort({ createdAt: -1 });

@@ -210,7 +210,7 @@ const Dashboard: React.FC = () => {
                           <Typography variant="body2" color="text.secondary">
                             Requested by:{" "}
                             {(typeof order.createdBy === "object" &&
-                              order.createdBy?.username) ||
+                              order.createdBy?.fullName) ||
                               "Unknown"}
                           </Typography>
                         </Box>
