@@ -6,7 +6,13 @@ import jwt from "jsonwebtoken";
 
 const generateAccessAndRefreshTokens = async (userId) => {
   try {
-    const user = await User.findById(userId).select("-password");
+    const user = await User.findById(userId); // Modified line: removed .select("-password")
+
+    if (!user) {
+      console.error(`User not found in generateAccessAndRefreshTokens for ID: ${userId}`);
+      throw new ApiError(404, "User not found during token processing. Unable to generate tokens.");
+    }
+
     const accessToken = user.generateAccessToken();
     const refreshToken = user.generateRefreshToken();
 
