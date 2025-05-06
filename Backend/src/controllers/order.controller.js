@@ -1,6 +1,8 @@
 import { Order } from "../models/order.model.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
+import { sendQuotationRequest } from "../utils/emialService.js";
+import asyncHandler from "express-async-handler";
 
 export const createOrder = async (req, res) => {
   try {
@@ -278,3 +280,53 @@ export const getOrders = async (req, res) => {
     throw new ApiError(500, "Internal server error");
   }
 };
+
+export const forwardOrder = asyncHandler(async (req, res) => {
+  const { orderId } = req.params;
+  const user = req.user;
+
+  const order = await Order.findById(orderId)
+    .populate({
+      path: "vendor",
+      select: "name email phone gstin address",
+    })
+    .populate({
+      path: "items",
+      select: "name description quantity unitPrice",
+    });
+
+  if (!order) {
+    throw new ApiError(404, "Order not found");
+  }
+
+  if (order.status !== "approved") {
+    throw new ApiError(
+      400,
+      "Only approved orders can be forwarded for quotation"
+    );
+  }
+
+  await sendQuotationRequest({
+    order: {
+      ginDetails: order.ginDetails,
+      vendor: order.vendor,
+      items: order.items,
+      createdAt: order.createdAt,
+    },
+    user: {
+      fullName: user.fullName,
+      department: user.department,
+      // organization: user.organization,
+    },
+  });
+
+  // Update order status
+  order.status = "quotation_requested";
+  order.forwardedBy = user._id;
+  order.forwardedAt = new Date();
+  await order.save();
+
+  res
+    .status(200)
+    .json(new ApiResponse(200, null, "Quotation request sent successfully"));
+});

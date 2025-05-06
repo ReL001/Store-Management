@@ -46,7 +46,13 @@ const orderSchema = new mongoose.Schema(
     // Approval Metadata (unchanged)
     status: {
       type: String,
-      enum: ["pending", "approved", "rejected"],
+      enum: [
+        "pending",
+        "approved",
+        "rejected",
+        "request_changes",
+        "quotation_requested",
+      ],
       default: "pending",
     },
     requestedChanges: String,

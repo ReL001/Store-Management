@@ -3,6 +3,7 @@ import { verifyToken } from "../middleware/auth.middleware.js";
 import {
   createOrder,
   deleteOrder,
+  forwardOrder,
   getOrders,
   updateOrder,
 } from "../controllers/order.controller.js";
@@ -18,5 +19,6 @@ router.route("/delete/:id").delete(verifyToken, checkManagerRole, deleteOrder);
 router.route("/handleOrder/:id").patch(verifyToken, handleOrderAction);
 router.route("/recent").get(verifyToken, getRecentOrders);
 router.route("/").get(verifyToken, getOrders);
+router.route("/:orderId/forward").post(verifyToken, forwardOrder);
 
 export default router;

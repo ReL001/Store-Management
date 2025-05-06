@@ -97,21 +97,6 @@ interface OrderItem {
   unitPrice: number;
 }
 
-// interface Order {
-//   _id: string;
-//   ginDetails: GinDetails;
-//   vendorDetails: VendorDetails;
-//   items: OrderItem[];
-//   status: "pending" | "approved" | "rejected";
-//   createdAt: string;
-//   updatedAt: string;
-// }
-
-// interface OrdersData {
-//   orders: Order[];
-//   totalOrders: number;
-// }
-
 const OrderManagement: React.FC = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [dialogType, setDialogType] = useState<"product" | "order">("product");
