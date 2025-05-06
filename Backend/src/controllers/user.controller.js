@@ -9,12 +9,12 @@ const generateAccessAndRefreshTokens = async (userInstance) => {
     const accessToken = userInstance.generateAccessToken();
     const refreshToken = userInstance.generateRefreshToken();
 
-    // Using findByIdAndUpdate to directly update the refreshToken field
-    // This bypasses document validation which is causing the issues
+    // Instead of modifying the instance and saving, directly update the refreshToken in the DB
     await User.findByIdAndUpdate(
-      userInstance._id,
-      { refreshToken },
-      { new: true, runValidators: false }
+      userInstance._id, // The ID of the user to update
+      {
+        $set: { refreshToken: refreshToken }, // Set only the refreshToken field
+      }
     );
 
     return { accessToken, refreshToken };
