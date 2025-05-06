@@ -4,25 +4,15 @@ import { ApiError } from "../utils/ApiError.js";
 import { User } from "../models/user.model.js";
 import jwt from "jsonwebtoken";
 
-const generateAccessAndRefreshTokens = async (userId) => {
-  try {
-    const user = await User.findById(userId); // Modified line: removed .select("-password")
-
-    if (!user) {
-      console.error(`User not found in generateAccessAndRefreshTokens for ID: ${userId}`);
-      throw new ApiError(404, "User not found during token processing. Unable to generate tokens.");
-    }
-
-    const accessToken = user.generateAccessToken();
-    const refreshToken = user.generateRefreshToken();
-
-    user.refreshToken = refreshToken;
-    await user.save({ validateBeforeSave: true });
-
-    return { accessToken, refreshToken };
-  } catch (error) {
-    throw new ApiError(500, error?.message || "Error generating tokens");
+const generateAccessAndRefreshTokens = async (userInstance) => {
+  if (!process.env.ACCESS_TOKEN_SECRET || !process.env.REFRESH_TOKEN_SECRET) {
+    throw new ApiError(500, "JWT secrets are not set in environment variables.");
   }
+  const accessToken = userInstance.generateAccessToken();
+  const refreshToken = userInstance.generateRefreshToken();
+  // Use atomic update to avoid validation errors
+  await User.findByIdAndUpdate(userInstance._id, { $set: { refreshToken } });
+  return { accessToken, refreshToken };
 };
 
 export const registerUser = asyncHandler(async (req, res) => {
@@ -98,7 +88,7 @@ export const loginUser = asyncHandler(async (req, res) => {
 
   //Generate access & refresh tokens
   const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(
-    user._id
+    user
   );
 
   // console.log(generateAccessAndRefreshTokens(user._id));
@@ -165,7 +155,7 @@ export const refreshAccessToken = asyncHandler(async (req, res) => {
 
     //refresh tokens
     const { accessToken, refreshToken: newRefreshToken } =
-      await generateAccessAndRefreshTokens(user._id);
+      await generateAccessAndRefreshTokens(user);
 
     //send the new tokens
     const options = {
