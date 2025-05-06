@@ -6,13 +6,6 @@ export interface GinDetails {
   billNumber: string;
 }
 
-export interface VendorDetails {
-  name: string;
-  contactNumber: string;
-  gstin: string;
-  address: string;
-}
-
 export interface OrderItem {
   name: string;
   description: string;
@@ -28,10 +21,14 @@ export type UserReference =
       email: string;
     };
 
+export type VendorReference =
+  | string
+  | { name: string; contactNumber: string; gstin: string; address: string };
+
 export interface Order {
   _id: string;
   ginDetails: GinDetails;
-  vendorDetails: VendorDetails;
+  vendor: VendorReference | string;
   items: OrderItem[];
   totalPrice: Number;
   status: "pending" | "approved" | "rejected";

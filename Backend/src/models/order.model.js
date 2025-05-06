@@ -24,14 +24,11 @@ const orderSchema = new mongoose.Schema(
       billNumber: { type: String, required: true, trim: true },
     },
 
-    // Vendor Details (nested object)
-    vendorDetails: {
-      name: { type: String, required: true, trim: true }, // Existing 'vendor' field upgraded
-      contactNumber: { type: String, required: true, trim: true },
-      gstin: { type: String, required: true, trim: true }, // GSTIN is alphanumeric (e.g., "22ABCDE1234F1Z5")
-      address: { type: String, required: true, trim: true },
+    vendor: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Vendor",
+      required: true,
     },
-
     // Items Array (enhanced with unit details)
     items: [
       {

@@ -4,7 +4,7 @@ import { ApiError } from "../utils/ApiError.js";
 
 export const createOrder = async (req, res) => {
   try {
-    const { ginDetails, vendorDetails, items } = req.body;
+    const { ginDetails, vendor, items } = req.body;
 
     // Validate GIN details
     if (
@@ -24,20 +24,8 @@ export const createOrder = async (req, res) => {
     }
 
     // Validate vendor details
-    if (
-      !vendorDetails?.name ||
-      !vendorDetails?.contactNumber ||
-      !vendorDetails?.gstin ||
-      !vendorDetails?.address
-    ) {
-      return res
-        .status(400)
-        .json(
-          new ApiError(
-            400,
-            "Vendor details (name, number, contact, GSTIN, address) are required"
-          )
-        );
+    if (!vendor) {
+      return res.status(400).json(new ApiError(400, "Vendor is required"));
     }
 
     // Validate items
@@ -74,7 +62,7 @@ export const createOrder = async (req, res) => {
     // Create and save order
     const newOrder = new Order({
       ginDetails,
-      vendorDetails,
+      vendor,
       items,
       totalPrice,
       createdBy: req.user._id,
@@ -181,11 +169,18 @@ export const getRecentOrders = async (req, res) => {
     }
 
     const recentOrders = await Order.find(filter)
-      .populate({
-        path: "createdBy",
-        select: "fullName",
-        model: "User",
-      })
+      .populate([
+        {
+          path: "vendor",
+          select: "name phone email gstin address",
+          model: "Vendor",
+        },
+        {
+          path: "createdBy",
+          select: "fullName",
+          model: "User",
+        },
+      ])
       .sort({ createdAt: -1 }) // Most recent first
       .limit(3);
 
@@ -240,7 +235,7 @@ export const getOrders = async (req, res) => {
 
     // Filter by vendor if provided
     if (vendor) {
-      filter["vendorDetails.name"] = vendor;
+      filter.vendor = vendor;
     }
 
     // Pagination
@@ -251,11 +246,18 @@ export const getOrders = async (req, res) => {
 
     // Fetch orders
     const orders = await Order.find(filter)
-      .populate({
-        path: "createdBy",
-        select: "fullName email", // Ensure these match User schema
-        model: "User", // Explicitly declare model
-      })
+      .populate([
+        {
+          path: "vendor",
+          select: "name phone email gstin address",
+          model: "Vendor",
+        },
+        {
+          path: "createdBy",
+          select: "fullName email", // Ensure these match User schema
+          model: "User", // Explicitly declare model
+        },
+      ])
       .skip(skip)
       .limit(Number(limit))
       .sort({ createdAt: -1 });

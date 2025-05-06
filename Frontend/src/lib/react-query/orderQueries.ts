@@ -39,12 +39,7 @@ interface CreateOrderPayload {
     department: string;
     billNumber: string;
   };
-  vendorDetails: {
-    name: string;
-    contactNumber: string;
-    gstin: string;
-    address: string;
-  };
+  vendor: string; // vendor ID
   items: Array<{
     name: string;
     description?: string;
@@ -53,37 +48,37 @@ interface CreateOrderPayload {
   }>;
 }
 
-function validateOrdersResponse(response: unknown): OrdersData {
-  // Check if response is an object
-  if (!response || typeof response !== "object") {
-    console.warn("Invalid API response structure", response);
-    return { orders: [], totalOrders: 0 };
-  }
+// function validateOrdersResponse(response: unknown): OrdersData {
+// // Check if response is an object
+// if (!response || typeof response !== "object") {
+//   console.warn("Invalid API response structure", response);
+//   return { orders: [], totalOrders: 0 };
+// }
 
-  // Safely access the data property
-  const responseData = (response as { data?: unknown }).data;
+// // Safely access the data property
+// const responseData = (response as { data?: unknown }).data;
 
-  // Check if data exists and is an object
-  if (!responseData || typeof responseData !== "object") {
-    console.warn("Invalid data structure in API response", response);
-    return { orders: [], totalOrders: 0 };
-  }
+// // Check if data exists and is an object
+// if (!responseData || typeof responseData !== "object") {
+//   console.warn("Invalid data structure in API response", response);
+//   return { orders: [], totalOrders: 0 };
+// }
 
-  // Extract orders and totalOrders with proper type checking
-  const orders = (responseData as { orders?: unknown }).orders;
-  const totalOrders = (responseData as { totalOrders?: unknown }).totalOrders;
+// // Extract orders and totalOrders with proper type checking
+// const orders = (responseData as { orders?: unknown }).orders;
+// const totalOrders = (responseData as { totalOrders?: unknown }).totalOrders;
 
-  // Validate orders is an array (or default to empty array)
-  const validatedOrders = Array.isArray(orders) ? orders : [];
+// // Validate orders is an array (or default to empty array)
+// const validatedOrders = Array.isArray(orders) ? orders : [];
 
-  // Validate totalOrders is a number (or default to 0)
-  const validatedTotal = typeof totalOrders === "number" ? totalOrders : 0;
+// // Validate totalOrders is a number (or default to 0)
+// const validatedTotal = typeof totalOrders === "number" ? totalOrders : 0;
 
-  return {
-    orders: validatedOrders as Order[], // Safe cast after validation
-    totalOrders: validatedTotal,
-  };
-}
+// return {
+//   orders: validatedOrders as Order[], // Safe cast after validation
+//   totalOrders: validatedTotal,
+// };
+// }
 
 const fetchRecentOrders = async (): Promise<Order[]> => {
   try {

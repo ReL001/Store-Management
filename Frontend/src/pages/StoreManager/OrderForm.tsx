@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Paper,
@@ -17,14 +17,14 @@ import {
   Divider,
   CircularProgress,
   Autocomplete,
-} from '@mui/material';
-import { Add as AddIcon, Delete as DeleteIcon } from '@mui/icons-material';
-import { motion } from 'framer-motion';
-import { useFormik } from 'formik';
-import * as Yup from 'yup';
-import { useVendors } from '../../lib/react-query/hooks/useVendors';
-import { Vendor } from '../../lib/react-query/vendorQueries';
-import { useCreateOrder } from '../../lib/react-query/hooks/useCreateOrder';
+} from "@mui/material";
+import { Add as AddIcon, Delete as DeleteIcon } from "@mui/icons-material";
+import { motion } from "framer-motion";
+import { useFormik } from "formik";
+import * as Yup from "yup";
+import { useVendors } from "../../lib/react-query/hooks/useVendors";
+import { Vendor } from "../../lib/react-query/vendorQueries";
+import { useCreateOrder } from "../../lib/react-query/hooks/useCreateOrder";
 
 const MotionPaper = motion(Paper);
 
@@ -60,11 +60,11 @@ interface OrderFormValues {
 }
 
 const validationSchema = Yup.object({
-  gin: Yup.string().required('GIN is required'),
-  date: Yup.date().required('Date is required'),
-  department: Yup.string().required('Department is required'),
-  billNo: Yup.string().required('Bill number is required'),
-  vendor: Yup.object().required('Vendor is required'),
+  gin: Yup.string().required("GIN is required"),
+  date: Yup.date().required("Date is required"),
+  department: Yup.string().required("Department is required"),
+  billNo: Yup.string().required("Bill number is required"),
+  vendor: Yup.object().required("Vendor is required"),
 });
 
 const departments = [
@@ -72,19 +72,14 @@ const departments = [
   "Electronics",
   "Mechanical",
   "Civil",
-  "Chemical",
-  "Physics",
-  "Chemistry",
-  "Mathematics",
-  "Biology",
-  "Other",
+  "Biotech",
 ];
 
 const OrderForm: React.FC<OrderFormProps> = ({ onSubmit }) => {
   const [items, setItems] = useState<Item[]>([
     { id: "1", name: "", description: "", quantity: 0, unitPrice: 0, total: 0 },
   ]);
-  
+
   // Fetch vendors from the database
   const { data: vendorsData, isLoading: loadingVendors } = useVendors();
   const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(null);
@@ -92,16 +87,16 @@ const OrderForm: React.FC<OrderFormProps> = ({ onSubmit }) => {
 
   const formik = useFormik({
     initialValues: {
-      gin: '',
-      date: new Date().toISOString().split('T')[0],
-      department: '',
-      billNo: '',
+      gin: "",
+      date: new Date().toISOString().split("T")[0],
+      department: "",
+      billNo: "",
       vendor: null as Vendor | null,
     },
     validationSchema,
     onSubmit: (values: OrderFormValues) => {
       if (!selectedVendor) return;
-      
+
       // Prepare the payload
       const orderPayload = {
         ginDetails: {
@@ -110,12 +105,7 @@ const OrderForm: React.FC<OrderFormProps> = ({ onSubmit }) => {
           department: values.department,
           billNumber: values.billNo,
         },
-        vendorDetails: {
-          name: selectedVendor.name,
-          contactNumber: selectedVendor.phone,
-          gstin: selectedVendor.gstin || '',
-          address: selectedVendor.address,
-        },
+        vendor: selectedVendor._id,
         items: items.map((item) => ({
           name: item.name,
           description: item.description,
@@ -123,7 +113,7 @@ const OrderForm: React.FC<OrderFormProps> = ({ onSubmit }) => {
           unitPrice: item.unitPrice,
         })),
       };
-      
+
       // Submit using the mutation instead of just passing to parent
       createOrderMutation.mutate(orderPayload, {
         onSuccess: () => {
@@ -131,7 +121,7 @@ const OrderForm: React.FC<OrderFormProps> = ({ onSubmit }) => {
           onSubmit({
             ...values,
             vendor: selectedVendor,
-            items: items
+            items: items,
           } as FormData);
         },
       });
@@ -180,7 +170,7 @@ const OrderForm: React.FC<OrderFormProps> = ({ onSubmit }) => {
   // When a vendor is selected in the autocomplete, update the formik value
   const handleVendorChange = (vendor: Vendor | null) => {
     setSelectedVendor(vendor);
-    formik.setFieldValue('vendor', vendor);
+    formik.setFieldValue("vendor", vendor);
   };
 
   return (
@@ -287,14 +277,16 @@ const OrderForm: React.FC<OrderFormProps> = ({ onSubmit }) => {
                   <TextField
                     {...params}
                     label="Select Vendor"
-                    error={formik.touched.vendor && Boolean(formik.errors.vendor)}
+                    error={
+                      formik.touched.vendor && Boolean(formik.errors.vendor)
+                    }
                     helperText={formik.touched.vendor && formik.errors.vendor}
                   />
                 )}
               />
             )}
           </Grid>
-          
+
           {selectedVendor && (
             <>
               <Grid item xs={12} md={6}>
@@ -309,7 +301,7 @@ const OrderForm: React.FC<OrderFormProps> = ({ onSubmit }) => {
                 <TextField
                   fullWidth
                   label="GSTIN"
-                  value={selectedVendor.gstin || 'N/A'}
+                  value={selectedVendor.gstin || "N/A"}
                   InputProps={{ readOnly: true }}
                 />
               </Grid>
@@ -443,7 +435,10 @@ const OrderForm: React.FC<OrderFormProps> = ({ onSubmit }) => {
                 color="primary"
                 size="large"
                 sx={{ minWidth: 200 }}
-                disabled={!formik.isValid || items.some(item => !item.name || item.quantity <= 0)}
+                disabled={
+                  !formik.isValid ||
+                  items.some((item) => !item.name || item.quantity <= 0)
+                }
               >
                 Submit
               </Button>

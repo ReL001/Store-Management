@@ -61,6 +61,7 @@ const fetchVendors = async (
     }
 
     const result: ApiResponse<VendorsData> = await response.json();
+    console.log(result.data.vendors);
     return result.data;
   } catch (error) {
     console.error("Fetch error:", error);

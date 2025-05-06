@@ -83,12 +83,12 @@ interface GinDetails {
   billNumber: string;
 }
 
-interface VendorDetails {
-  name: string;
-  contactNumber: string;
-  gstin: string;
-  address: string;
-}
+// interface VendorDetails {
+//   name: string;
+//   contactNumber: string;
+//   gstin: string;
+//   address: string;
+// }
 
 interface OrderItem {
   name: string;
@@ -114,7 +114,6 @@ interface OrderItem {
 
 const OrderManagement: React.FC = () => {
   const [openDialog, setOpenDialog] = useState(false);
-  const [products, setProducts] = useState<Product[]>([]);
   const [dialogType, setDialogType] = useState<"product" | "order">("product");
   // State for pagination
   const [page, setPage] = useState(0);
@@ -130,6 +129,7 @@ const OrderManagement: React.FC = () => {
 
   // const orders: Order[] = totalOrders?.orders || [];
   const orders = (totalOrders?.orders || []) as Order[]; // Force type assertion
+  // console.log(orders);
   const totalCount: number = totalOrders?.totalOrders || 0;
 
   const handleForwardOrder = (orderId: string) => {
@@ -445,7 +445,9 @@ const OrderManagement: React.FC = () => {
                           {order.ginDetails?.billNumber || "N/A"}
                         </TableCell>
                         <TableCell>
-                          {order.vendorDetails?.name || "N/A"}
+                          {(typeof order.vendor == "object" &&
+                            order.vendor?.name) ||
+                            "N/A"}
                         </TableCell>
                         <TableCell>{order.items?.length || 0}</TableCell>
                         <TableCell>
