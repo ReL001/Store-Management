@@ -9,14 +9,8 @@ export const verifyToken = asyncHandler(async (req, _, next) => {
       req.cookies?.accessToken ||
       req.header("Authorization")?.replace("Bearer ", "");
 
-    // Updated token check
-    if (!token || typeof token !== 'string' || token.trim() === '') {
-      throw new ApiError(401, "Unauthorized request: Token missing or invalid format");
-    }
-
-    if (!process.env.ACCESS_TOKEN_SECRET) {
-      console.error("FATAL: ACCESS_TOKEN_SECRET is not defined in environment variables.");
-      throw new ApiError(500, "Internal server configuration error: Access token secret missing.");
+    if (!token) {
+      throw new ApiError(401, "Unauthorized request");
     }
 
     const decodedUser = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
