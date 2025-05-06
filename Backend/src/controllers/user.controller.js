@@ -4,24 +4,21 @@ import { ApiError } from "../utils/ApiError.js";
 import { User } from "../models/user.model.js";
 import jwt from "jsonwebtoken";
 
-const generateAccessAndRefreshTokens = async (userId) => {
+const generateAccessAndRefreshTokens = async (userInstance) => {
   try {
-    const user = await User.findById(userId); // Modified line: removed .select("-password")
+    const accessToken = userInstance.generateAccessToken();
+    const refreshToken = userInstance.generateRefreshToken();
 
-    if (!user) {
-      console.error(`User not found in generateAccessAndRefreshTokens for ID: ${userId}`);
-      throw new ApiError(404, "User not found during token processing. Unable to generate tokens.");
-    }
-
-    const accessToken = user.generateAccessToken();
-    const refreshToken = user.generateRefreshToken();
-
-    user.refreshToken = refreshToken;
-    await user.save({ validateBeforeSave: true });
+    userInstance.refreshToken = refreshToken;
+    await userInstance.save({ validateBeforeSave: true });
 
     return { accessToken, refreshToken };
   } catch (error) {
-    throw new ApiError(500, error?.message || "Error generating tokens");
+    console.error("Error in generateAccessAndRefreshTokens:", error);
+    throw new ApiError(
+      500,
+      error?.message || "Error generating tokens"
+    );
   }
 };
 
@@ -70,53 +67,53 @@ export const registerUser = asyncHandler(async (req, res) => {
 });
 
 export const loginUser = asyncHandler(async (req, res) => {
-  //Get data from user
   const { username, email, password } = req.body;
 
-  //Validate data
-  if (!username && !email) {
-    return res.status(400).json({ message: "Username or email is required" });
-  }
-  if (!password) {
-    return res.status(400).json({ message: "Password is required" });
+  if ((!username && !email) || !password) {
+    throw new ApiError(400, "Username/Email and password are required");
   }
 
-  //Authentication
-  const user = await User.findOne({
-    $or: [{ username }, { email }],
-  });
+  const userQuery = username ? { username } : { email };
+  const user = await User.findOne(userQuery);
 
   if (!user) {
-    return res.status(404).json({ message: "User does not exist" });
+    throw new ApiError(404, "User does not exist");
   }
 
   const isPasswordValid = await user.comparePassword(password);
 
   if (!isPasswordValid) {
-    return res.status(401).json({ message: "Incorrect password" });
+    throw new ApiError(401, "Incorrect password");
   }
 
-  //Generate access & refresh tokens
-  const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(
-    user._id
-  );
+  // Pass the fetched 'user' object directly to generateAccessAndRefreshTokens
+  const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(user);
 
-  // console.log(generateAccessAndRefreshTokens(user._id));
+  // Prepare user object for the response, excluding sensitive information
+  const loggedInUserForResponse = {
+    _id: user._id,
+    username: user.username,
+    email: user.email,
+    fullName: user.fullName,
+    role: user.role,
+  };
 
-  //set cookies and send response
   const options = {
     httpOnly: true,
-    secure: true,
+    secure: process.env.NODE_ENV === 'production',
   };
 
   return res
     .status(200)
     .cookie("accessToken", accessToken, options)
     .cookie("refreshToken", refreshToken, options)
-    .json({
-      user: user,
-      accessToken,
-    });
+    .json(
+      new ApiResponse(
+        200,
+        { user: loggedInUserForResponse, accessToken },
+        "User logged in successfully"
+      )
+    );
 });
 
 export const logoutUser = asyncHandler(async (req, res) => {
