@@ -42,7 +42,7 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({
   children,
   allowedRoles,
 }) => {
-  const isAuthenticated = !!localStorage.getItem("token");
+  const isAuthenticated = !!localStorage.getItem("accessToken"); // Changed "token" to "accessToken"
   const user = JSON.parse(localStorage.getItem("user") || "{}");
 
   if (!isAuthenticated) {

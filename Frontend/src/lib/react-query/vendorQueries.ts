@@ -1,5 +1,6 @@
 // src/lib/react-query/vendorQueries.ts
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { apiClient } from "./apiClient";
 
 export interface Vendor {
   _id: string;
@@ -30,20 +31,11 @@ interface ApiResponse<T> {
 const fetchVendors = async (search?: string): Promise<VendorsData> => {
   try {
     const url = search 
-      ? `http://localhost:4000/api/vendors?search=${search}`
-      : `http://localhost:4000/api/vendors`;
-      
-    const response = await fetch(url, {
-      method: "GET",
-      credentials: "include",
-    });
+      ? `/vendors?search=${search}`
+      : `/vendors`;
 
-    if (!response.ok) {
-      throw new Error("Failed to fetch vendors");
-    }
-
-    const result: ApiResponse<VendorsData> = await response.json();
-    return result.data;
+    const response = await apiClient.get(url);
+    return response.data.data; // Backend wraps in ApiResponse
   } catch (error) {
     console.error("Fetch error:", error);
     return { vendors: [], totalVendors: 0 };
@@ -63,17 +55,8 @@ const fetchVendorById = async (id: string): Promise<Vendor | null> => {
   if (!id) return null;
   
   try {
-    const response = await fetch(`http://localhost:4000/api/vendors/${id}`, {
-      method: "GET",
-      credentials: "include",
-    });
-
-    if (!response.ok) {
-      throw new Error("Failed to fetch vendor");
-    }
-
-    const result: ApiResponse<Vendor> = await response.json();
-    return result.data;
+    const response = await apiClient.get(`/vendors/${id}`);
+    return response.data.data; // Backend wraps in ApiResponse
   } catch (error) {
     console.error("Fetch error:", error);
     return null;
@@ -89,27 +72,16 @@ export const useVendorByIdQuery = (id: string) => {
 };
 
 // Create vendor
+const createVendorFn = async (vendorData: Omit<Vendor, "_id" | "createdAt" | "updatedAt" | "previousOrders">): Promise<Vendor> => {
+  const response = await apiClient.post("/vendors/create", vendorData);
+  return response.data.data; // Backend wraps in ApiResponse, return Vendor
+};
+
 export const useCreateVendorMutation = () => {
   const queryClient = useQueryClient();
   
-  return useMutation({
-    mutationFn: async (vendorData: Omit<Vendor, "_id" | "createdAt" | "updatedAt" | "previousOrders">) => {
-      const response = await fetch("http://localhost:4000/api/vendors/create", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify(vendorData),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Failed to create vendor");
-      }
-
-      return response.json();
-    },
+  return useMutation<Vendor, Error, Omit<Vendor, "_id" | "createdAt" | "updatedAt" | "previousOrders">>({
+    mutationFn: createVendorFn,
     onSuccess: () => {
       // Invalidate queries to refetch the data
       queryClient.invalidateQueries({ queryKey: ["vendors"] });
@@ -118,33 +90,22 @@ export const useCreateVendorMutation = () => {
 };
 
 // Update vendor
+const updateVendorFn = async ({ 
+  id, 
+  vendorData 
+}: { 
+  id: string; 
+  vendorData: Partial<Omit<Vendor, "_id" | "createdAt" | "updatedAt" | "previousOrders">> 
+}): Promise<Vendor> => {
+  const response = await apiClient.put(`/vendors/${id}`, vendorData);
+  return response.data.data; // Backend wraps in ApiResponse, return Vendor
+};
+
 export const useUpdateVendorMutation = () => {
   const queryClient = useQueryClient();
   
-  return useMutation({
-    mutationFn: async ({ 
-      id, 
-      vendorData 
-    }: { 
-      id: string; 
-      vendorData: Partial<Omit<Vendor, "_id" | "createdAt" | "updatedAt" | "previousOrders">> 
-    }) => {
-      const response = await fetch(`http://localhost:4000/api/vendors/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify(vendorData),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Failed to update vendor");
-      }
-
-      return response.json();
-    },
+  return useMutation<Vendor, Error, { id: string; vendorData: Partial<Omit<Vendor, "_id" | "createdAt" | "updatedAt" | "previousOrders">> }>({
+    mutationFn: updateVendorFn,
     onSuccess: (_, variables) => {
       // Invalidate affected queries
       queryClient.invalidateQueries({ queryKey: ["vendors"] });
@@ -154,23 +115,16 @@ export const useUpdateVendorMutation = () => {
 };
 
 // Delete vendor
+const deleteVendorFn = async (id: string): Promise<Vendor> => {
+  const response = await apiClient.delete(`/vendors/${id}`);
+  return response.data.data; // Backend wraps in ApiResponse, return Vendor
+};
+
 export const useDeleteVendorMutation = () => {
   const queryClient = useQueryClient();
   
-  return useMutation({
-    mutationFn: async (id: string) => {
-      const response = await fetch(`http://localhost:4000/api/vendors/${id}`, {
-        method: "DELETE",
-        credentials: "include",
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Failed to delete vendor");
-      }
-
-      return response.json();
-    },
+  return useMutation<Vendor, Error, string>({
+    mutationFn: deleteVendorFn,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["vendors"] });
     },

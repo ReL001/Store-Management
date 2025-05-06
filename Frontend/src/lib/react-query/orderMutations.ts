@@ -26,7 +26,7 @@ export const useOrderActionMutation = (): UseMutationResult<
         action,
         message,
       });
-      return data;
+      return data.data; // Corrected to return data.data as backend uses ApiResponse
     },
     onMutate: async ({ orderId, action, message }) => {
       // Cancel any outgoing refetches

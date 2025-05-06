@@ -2,6 +2,7 @@
 import { useQuery, UseQueryResult, useMutation, UseMutationResult, useQueryClient } from "@tanstack/react-query";
 import { Order, OrdersData } from "types/order";
 import { queryClient } from "./queryClient"; // Import your existing instance
+import { apiClient } from "./apiClient"; // Added import
 
 interface OrderItem {
   name: string;
@@ -81,19 +82,8 @@ function validateOrdersResponse(response: unknown): OrdersData {
 
 const fetchRecentOrders = async (): Promise<Order[]> => {
   try {
-    const response = await fetch("http://localhost:4000/api/orders/recent", {
-      method: "GET",
-      credentials: "include",
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const result: RecentOrdersResponse = await response.json();
-
-    // Recent orders endpoint returns array directly in data property
-    return Array.isArray(result.data) ? result.data : [];
+    const response = await apiClient.get("/orders/recent");
+    return response.data.data; // Backend wraps in ApiResponse
   } catch (error) {
     console.error("Fetch error:", error);
     return [];
@@ -109,26 +99,9 @@ export const useRecentOrdersQuery = (): UseQueryResult<Order[], Error> => {
 
 const fetchOrders = async (status?: string): Promise<OrdersData> => {
   try {
-    const url = status
-      ? `http://localhost:4000/api/orders?status=${status}`
-      : `http://localhost:4000/api/orders`;
-
-    console.log("Making request to:", url); // Debug 1: URL verification
-
-    const response = await fetch(url, {
-      method: "GET",
-      credentials: "include",
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || "Failed to fetch orders");
-    }
-
-    const result: ApiResponse = await response.json();
-    console.log("Raw API response:", result); // Debug 2: Raw response
-    // return validateOrdersResponse(result.data);
-    return result.data;
+    const url = status ? `/orders?status=${status}` : "/orders";
+    const response = await apiClient.get(url);
+    return response.data.data; // Backend wraps in ApiResponse
   } catch (error) {
     console.error("Fetch error:", error);
     return { orders: [], totalOrders: 0 };
@@ -147,21 +120,8 @@ export const useGetOrdersQuery = (
 };
 
 const createOrder = async (orderData: CreateOrderPayload): Promise<Order> => {
-  const response = await fetch("http://localhost:4000/api/orders/create", {
-    method: "POST",
-    credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(orderData),
-  });
-
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.message || "Failed to create order");
-  }
-
-  return await response.json();
+  const response = await apiClient.post("/orders/create", orderData);
+  return response.data.data; // Backend wraps in ApiResponse, return the Order
 };
 
 export const useCreateOrderMutation = (): UseMutationResult<
@@ -204,25 +164,14 @@ export const useCreateOrderMutation = (): UseMutationResult<
   });
 };
 
-const deleteOrder = async (orderId: string) => {
-  const response = await fetch(
-    `http://localhost:4000/api/orders/delete/${orderId}`,
-    {
-      method: "DELETE",
-      credentials: "include",
-    }
-  );
-
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.message || "Failed to delete order");
-  }
-
-  return response.json();
+const deleteOrder = async (orderId: string): Promise<Order> => {
+  const response = await apiClient.delete(`/orders/delete/${orderId}`);
+  return response.data.data; // Backend wraps in ApiResponse, return the Order
 };
 
 export const useDeleteOrderMutation = () => {
-  return useMutation<string, Error, string>({
+  const queryClient = useQueryClient(); // Ensure queryClient is available
+  return useMutation<Order, Error, string>({
     mutationFn: deleteOrder,
     onSuccess: () => {
       // Invalidate the orders query to refresh the list
