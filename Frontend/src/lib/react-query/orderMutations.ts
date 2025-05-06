@@ -9,7 +9,7 @@ import { Order } from "../../types/order";
 
 interface OrderActionParams {
   orderId: string;
-  action: "approve" | "reject" | "request_changes";
+  action: "approve" | "reject" | "request_changes" | "quotation_requested";
   message?: string;
 }
 
@@ -50,6 +50,8 @@ export const useOrderActionMutation = (): UseMutationResult<
                       ? "approved"
                       : action === "reject"
                       ? "rejected"
+                      : action === "quotation_requested"
+                      ? "quotation_requested"
                       : "changes_requested",
                   approvedBy: "optimistic-update", // Will be replaced by real data
                   ...(action === "request_changes" && {
@@ -63,6 +65,17 @@ export const useOrderActionMutation = (): UseMutationResult<
 
       return { previousOrders };
     },
+    onSuccess: (updatedOrder) => {
+      console.log(updatedOrder);
+      queryClient.setQueryData<{ orders: Order[] }>(["orders"], (oldData) => {
+        if (!oldData) return oldData;
+        return {
+          orders: oldData.orders.map((order) =>
+            order._id === updatedOrder._id ? updatedOrder : order
+          ),
+        };
+      });
+    },
     onError: (err, variables, context) => {
       // Rollback on error
       if (context?.previousOrders) {
@@ -71,7 +84,9 @@ export const useOrderActionMutation = (): UseMutationResult<
     },
     onSettled: () => {
       // Always refetch after error or success
-      queryClient.invalidateQueries({ queryKey: ["orders"] });
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ["orders"] });
+      }, 300);
     },
   });
 };

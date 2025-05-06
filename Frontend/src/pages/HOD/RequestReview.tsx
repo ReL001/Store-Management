@@ -53,6 +53,7 @@ const RequestReview: React.FC = () => {
     approveOrder,
     rejectOrder,
     requestChanges,
+    quotationRequested,
     isLoading: isActionLoading,
   } = useOrderActions();
 
@@ -81,7 +82,7 @@ const RequestReview: React.FC = () => {
   };
 
   const handleAction = async (
-    action: "approve" | "reject" | "request_changes"
+    action: "approve" | "reject" | "request_changes" | "quotation_requested"
   ) => {
     if (!selectedOrder) return;
 
@@ -90,6 +91,8 @@ const RequestReview: React.FC = () => {
         await requestChanges(selectedOrder._id, comment);
       } else if (action === "approve") {
         await approveOrder(selectedOrder._id);
+      } else if (action == "quotation_requested") {
+        await quotationRequested(selectedOrder._id);
       } else {
         await rejectOrder(selectedOrder._id);
       }

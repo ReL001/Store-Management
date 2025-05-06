@@ -112,7 +112,7 @@ export const sendQuotationRequest = async ({ order, user }) => {
           Best regards,<br>
           <strong>${user.fullName}</strong><br>
           ${user.department ? `${user.department}<br>` : ""}
-          ${user.organization || "Store Management System"}
+          ${user.organization || "Store Manager, KITCOEK, Kolhapur"}
         </p>
       </div>
       

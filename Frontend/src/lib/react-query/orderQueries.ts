@@ -250,3 +250,26 @@ export const useDeleteOrderMutation = () => {
     },
   });
 };
+
+///email forward
+// react-query/orderQueries.ts
+
+export const forwardOrder = async (orderId: string) => {
+  const res = await fetch(
+    `http://localhost:4000/api/orders/${orderId}/forward`,
+    {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.message || "Failed to forward order");
+  }
+
+  return res.json();
+};

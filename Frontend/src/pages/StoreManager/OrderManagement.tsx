@@ -43,6 +43,7 @@ import { toast } from "react-toastify";
 import { Vendor } from "../../lib/react-query/vendorQueries";
 import { useQueryClient } from "@tanstack/react-query";
 import ForwardToInboxIcon from "@mui/icons-material/ForwardToInbox";
+import { useForwardOrderMutation } from "lib/react-query/hooks/useForwardOrder";
 
 const MotionPaper = motion(Paper);
 const MotionCard = motion(Card);
@@ -117,12 +118,17 @@ const OrderManagement: React.FC = () => {
   // console.log(orders);
   const totalCount: number = totalOrders?.totalOrders || 0;
 
+  const forwardOrderMutation = useForwardOrderMutation();
   const handleForwardOrder = (orderId: string) => {
-    // Implement your forwarding logic here
-    console.log(`Forwarding order ${orderId}`);
-    toast.success(`Order ${orderId} forwarded successfully`);
-    // You might want to add a mutation hook for forwarding
-    // forwardOrderMutation.mutate(orderId);
+    forwardOrderMutation.mutate(orderId, {
+      onSuccess: () => {
+        toast.success(`Order ${orderId} forwarded successfully`);
+      },
+      onError: (error: any) => {
+        toast.error("Forwarding failed");
+        console.log(error);
+      },
+    });
   };
   // Handle pagination changes
   const handleChangePage = (event: unknown, newPage: number) => {
@@ -442,37 +448,39 @@ const OrderManagement: React.FC = () => {
                             size="small"
                           />
                         </TableCell>
-                        <TableCell align="center">
-                          {order.status !== "approved" ? (
-                            <>
-                              <IconButton color="primary" size="small">
-                                <EditIcon />
-                              </IconButton>
-                              <IconButton
-                                color="error"
-                                size="small"
-                                onClick={() => handleDeleteOrder(order._id)}
-                                disabled={isDeleting}
-                              >
-                                {isDeleting ? (
-                                  <CircularProgress size={24} />
-                                ) : (
-                                  <DeleteIcon />
-                                )}
-                              </IconButton>
-                            </>
-                          ) : (
-                            <Tooltip title="Forward approved order">
-                              <IconButton
-                                color="primary"
-                                size="small"
-                                onClick={() => handleForwardOrder(order._id)}
-                              >
-                                <ForwardToInboxIcon />
-                              </IconButton>
-                            </Tooltip>
-                          )}
-                        </TableCell>
+                        {order.status != "quotation_requested" && (
+                          <TableCell align="center">
+                            {order.status !== "approved" ? (
+                              <>
+                                <IconButton color="primary" size="small">
+                                  <EditIcon />
+                                </IconButton>
+                                <IconButton
+                                  color="error"
+                                  size="small"
+                                  onClick={() => handleDeleteOrder(order._id)}
+                                  disabled={isDeleting}
+                                >
+                                  {isDeleting ? (
+                                    <CircularProgress size={24} />
+                                  ) : (
+                                    <DeleteIcon />
+                                  )}
+                                </IconButton>
+                              </>
+                            ) : (
+                              <Tooltip title="Forward approved order">
+                                <IconButton
+                                  color="primary"
+                                  size="small"
+                                  onClick={() => handleForwardOrder(order._id)}
+                                >
+                                  <ForwardToInboxIcon />
+                                </IconButton>
+                              </Tooltip>
+                            )}
+                          </TableCell>
+                        )}
                       </TableRow>
                     ))}
                 </TableBody>

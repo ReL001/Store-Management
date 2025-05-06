@@ -20,10 +20,18 @@ export const useOrderActions = () => {
     });
   };
 
+  const quotationRequested = (orderId: string) => {
+    return mutation.mutateAsync({
+      orderId,
+      action: "quotation_requested",
+    });
+  };
+
   return {
     approveOrder,
     rejectOrder,
     requestChanges,
+    quotationRequested,
     isLoading: mutation.isPending,
     error: mutation.error,
   };

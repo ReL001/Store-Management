@@ -31,7 +31,7 @@ export interface Order {
   vendor: VendorReference | string;
   items: OrderItem[];
   totalPrice: Number;
-  status: "pending" | "approved" | "rejected";
+  status: "pending" | "approved" | "rejected" | "quotation_requested";
   createdAt: string;
   updatedAt: string;
   createdBy?: UserReference | string; // Added createdBy property as optional

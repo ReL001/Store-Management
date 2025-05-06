@@ -14,7 +14,9 @@ export const handleOrderAction = asyncHandler(async (req, res) => {
         ? "approved"
         : action === "reject"
           ? "rejected"
-          : "changes_requested",
+          : action === "quotation_requested" // Add this case
+            ? "quotation_requested"
+            : "changes_requested", // Default fallback
     approvedBy: user._id,
     updatedAt: new Date(),
   };
