@@ -85,7 +85,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setUser(userData);
     setToken(authToken);
     localStorage.setItem("user", JSON.stringify(userData));
-    localStorage.setItem("token", authToken);
+    localStorage.setItem("accessToken", authToken); // Changed "token" to "accessToken"
     startAutoLogoutTimer(expiryTimeMs);
   };
 
@@ -94,14 +94,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setUser(null);
     setToken(null);
     localStorage.removeItem("user");
-    localStorage.removeItem("token");
+    localStorage.removeItem("accessToken"); // Changed "token" to "accessToken"
     queryClient.clear();
     navigate("/login"); // Now works correctly
   }, [expiryTimeout, navigate]); // Added navigate to dependencies
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
-    const storedToken = localStorage.getItem("token");
+    const storedToken = localStorage.getItem("accessToken"); // Changed "token" to "accessToken"
 
     if (storedUser && storedToken) {
       try {

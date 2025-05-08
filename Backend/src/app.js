@@ -5,7 +5,10 @@ import cookieParser from "cookie-parser";
 const app = express();
 
 const corsOptions = {
-  origin: "http://localhost:3000", // Allow your frontend origin
+  origin: [
+    "http://localhost:3000",                     // Local development
+    "https://store-management-alpha.vercel.app"  // Production on Vercel
+  ],
   credentials: true, // Allow cookies (credentials) to be sent
 };
 

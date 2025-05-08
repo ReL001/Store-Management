@@ -1,8 +1,13 @@
 import axios from "axios";
 import { toast } from "react-toastify";
 
+// Automatically determine which API to use based on current environment
+const API_URL = process.env.NODE_ENV === "production" 
+  ? "https://store-management-ie0y.onrender.com/api"  // Production backend
+  : "http://localhost:4000/api";                      // Local development
+
 export const apiClient = axios.create({
-  baseURL: "http://localhost:4000/api", // Match your backend
+  baseURL: API_URL,
   withCredentials: true, // For cookies if using httpOnly tokens
 });
 

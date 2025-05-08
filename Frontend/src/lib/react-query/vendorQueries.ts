@@ -1,5 +1,6 @@
 // src/lib/react-query/vendorQueries.ts
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { apiClient } from "./apiClient";
 
 export interface Vendor {
   _id: string;
@@ -85,17 +86,8 @@ const fetchVendorById = async (id: string): Promise<Vendor | null> => {
   if (!id) return null;
 
   try {
-    const response = await fetch(`http://localhost:4000/api/vendors/${id}`, {
-      method: "GET",
-      credentials: "include",
-    });
-
-    if (!response.ok) {
-      throw new Error("Failed to fetch vendor");
-    }
-
-    const result: ApiResponse<Vendor> = await response.json();
-    return result.data;
+    const response = await apiClient.get(`/vendors/${id}`);
+    return response.data.data; // Backend wraps in ApiResponse
   } catch (error) {
     console.error("Fetch error:", error);
     return null;
@@ -111,6 +103,13 @@ export const useVendorByIdQuery = (id: string) => {
 };
 
 // Create vendor
+const createVendorFn = async (
+  vendorData: Omit<Vendor, "_id" | "createdAt" | "updatedAt" | "previousOrders">
+): Promise<Vendor> => {
+  const response = await apiClient.post("/vendors/create", vendorData);
+  return response.data.data; // Backend wraps in ApiResponse, return Vendor
+};
+
 export const useCreateVendorMutation = () => {
   const queryClient = useQueryClient();
 
@@ -183,6 +182,11 @@ export const useUpdateVendorMutation = () => {
 };
 
 // Delete vendor
+const deleteVendorFn = async (id: string): Promise<Vendor> => {
+  const response = await apiClient.delete(`/vendors/${id}`);
+  return response.data.data; // Backend wraps in ApiResponse, return Vendor
+};
+
 export const useDeleteVendorMutation = () => {
   const queryClient = useQueryClient();
 
