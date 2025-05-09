@@ -1,4 +1,4 @@
-import { jwtDecode } from "jwt-decode";
+import jwtDecode from "jwt-decode";
 import { queryClient } from "lib/react-query/queryClient";
 import {
   createContext,
