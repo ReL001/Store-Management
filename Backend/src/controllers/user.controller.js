@@ -188,3 +188,74 @@ export const refreshAccessToken = asyncHandler(async (req, res) => {
     throw new ApiError(500, error?.message || "Error refreshing tokens");
   }
 });
+
+export const getUserProfile = asyncHandler(async (req, res) => {
+  // Use the authenticated user's ID from the middleware
+  const userId = req.user._id;
+  
+  // Find user but exclude sensitive information
+  const user = await User.findById(userId).select("-password -refreshToken");
+
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, user, "User profile fetched successfully"));
+});
+
+export const updateUserProfile = asyncHandler(async (req, res) => {
+  const userId = req.user._id;
+  const { fullName, email, currentPassword, newPassword, department } = req.body;
+
+  // Find the user
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+
+  // Update basic fields if provided
+  if (fullName) user.fullName = fullName;
+  
+  // Handle email update - check if new email is already in use
+  if (email && user.email !== email) {
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      throw new ApiError(409, "Email already exists");
+    }
+    user.email = email;
+  }
+
+  // Handle department update for HOD users
+  if (department && user.role === "hod") {
+    if (!departmentEnum.includes(department)) {
+      throw new ApiError(400, {
+        message: "Invalid department",
+        validDepartments: departmentEnum,
+      });
+    }
+    user.department = department;
+  }
+
+  // Handle password update
+  if (currentPassword && newPassword) {
+    // Verify current password
+    const isPasswordValid = await user.comparePassword(currentPassword);
+    if (!isPasswordValid) {
+      throw new ApiError(401, "Current password is incorrect");
+    }
+    // Update password
+    user.password = newPassword;
+  }
+
+  // Save user changes
+  await user.save();
+
+  // Return updated user without sensitive information
+  const updatedUser = await User.findById(userId).select("-password -refreshToken");
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, updatedUser, "Profile updated successfully"));
+});
