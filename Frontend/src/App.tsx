@@ -17,6 +17,7 @@ import RequestReview from "./pages/HOD/RequestReview";
 import ApproveRequests from "./pages/HOD/ApproveRequests";
 import { AuthProvider } from "contexts/AuthContext";
 import OrderManagement from "./pages/StoreManager/OrderManagement";
+import Settings from "./pages/Common/Settings";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css"; // <-- Required for styling
 
@@ -126,16 +127,17 @@ const App: React.FC = () => {
             }
           />
 
-          {/* <Route
-            path="/approve-requests"
+          {/* Add Settings route for both roles */}
+          <Route
+            path="/settings"
             element={
-              <PrivateRoute allowedRoles={["hod"]}>
+              <PrivateRoute allowedRoles={["manager", "hod"]}>
                 <DashboardLayout>
-                  <ApproveRequests />
+                  <Settings />
                 </DashboardLayout>
               </PrivateRoute>
             }
-          /> */}
+          />
 
           {/* Redirect unknown routes to dashboard */}
           <Route path="*" element={<Navigate to="/dashboard" replace />} />

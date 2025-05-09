@@ -4,6 +4,7 @@ export interface User {
   role: "manager" | "hod";
   fullName: string;
   department: string;
+  avatar?: string; // Optional avatar URL for profile image
 }
 
 export interface Product {
