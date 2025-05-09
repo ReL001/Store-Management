@@ -66,7 +66,6 @@ export const useOrderActionMutation = (): UseMutationResult<
       return { previousOrders };
     },
     onSuccess: (updatedOrder) => {
-      console.log(updatedOrder);
       queryClient.setQueryData<{ orders: Order[] }>(["orders"], (oldData) => {
         if (!oldData) return oldData;
         return {
@@ -77,6 +76,7 @@ export const useOrderActionMutation = (): UseMutationResult<
       });
     },
     onError: (err, variables, context) => {
+      console.log("Error");
       // Rollback on error
       if (context?.previousOrders) {
         queryClient.setQueryData(["orders"], context.previousOrders);
@@ -84,9 +84,8 @@ export const useOrderActionMutation = (): UseMutationResult<
     },
     onSettled: () => {
       // Always refetch after error or success
-      setTimeout(() => {
-        queryClient.invalidateQueries({ queryKey: ["orders"] });
-      }, 300);
+
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
     },
   });
 };

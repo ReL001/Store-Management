@@ -94,7 +94,7 @@ const fetchRecentOrders = async (): Promise<Order[]> => {
     const result: RecentOrdersResponse = await response.json();
 
     // Recent orders endpoint returns array directly in data property
-    console.log(result.data);
+    // console.log(result.data);
     return Array.isArray(result.data) ? result.data : [];
   } catch (error) {
     console.error("Fetch error:", error);

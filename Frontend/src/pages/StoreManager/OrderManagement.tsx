@@ -122,6 +122,7 @@ const OrderManagement: React.FC = () => {
   const handleForwardOrder = (orderId: string) => {
     forwardOrderMutation.mutate(orderId, {
       onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["orders"] });
         toast.success(`Order ${orderId} forwarded successfully`);
       },
       onError: (error: any) => {
