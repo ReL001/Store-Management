@@ -150,8 +150,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
           </Typography>
           <Box sx={{ flexGrow: 1 }} />
           <Typography variant="subtitle1" sx={{ mr: 2 }}>
-            {user?.username.toUpperCase()} (
-            {user?.role === "manager" ? "Store Manager" : "HOD"})
+            {user?.username ? `${user.username.toUpperCase()} (${user.role === "manager" ? "Store Manager" : "HOD"})` : ""}
           </Typography>
         </Toolbar>
       </AppBar>
