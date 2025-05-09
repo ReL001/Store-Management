@@ -14,7 +14,7 @@ import { motion } from "framer-motion";
 import ProfileSettings from "./ProfileSettings";
 import SecuritySettings from "./SecuritySettings";
 // @ts-ignore - Import JS component
-import NotificationSettings from "./NotificationSettings.jsx";
+import NotificationSettings from "./NotificationSettings";
 import { useAuth } from "../../contexts/AuthContext";
 
 const MotionPaper = motion(Paper);
