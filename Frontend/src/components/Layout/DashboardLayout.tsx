@@ -29,6 +29,7 @@ import {
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAuth } from "../../contexts/AuthContext";
+import LogoVector from "../../assets/LogoVector.png";
 
 const drawerWidth = 240;
 
@@ -77,9 +78,16 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const drawer = (
     <Box>
       <Toolbar>
-        <Typography variant="h6" noWrap component="div">
+        {/* <Typography variant="h6" noWrap component="div">
           Store Management
-        </Typography>
+        </Typography> */}
+        <Box
+          component="img"
+          // src="C:\Users\siddh\Downloads\Store-Management-clone\Store-Management\Frontend\src\assets\LogoVector.png"
+          src={LogoVector}
+          alt="Logo"
+          sx={{ height: 60, mr: 2 }}
+        />
       </Toolbar>
       <Divider />
       <List>
